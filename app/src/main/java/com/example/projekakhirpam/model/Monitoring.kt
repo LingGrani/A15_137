@@ -9,5 +9,7 @@ data class Monitoring(
     val idPetugas: Int,
     val idKandang: Int,
     val tanggalMonitoring: LocalDateTime,
+    val hewanSakit: Int,
+    val hewanSehat: Int,
     val kondisi: String
 )
