@@ -15,6 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.projekakhirpam.model.Monitoring
 import com.example.projekakhirpam.ui.theme.ProjekAkhirPAMTheme
+import com.example.projekakhirpam.ui.view.hewan.HewanHomeView
+import com.example.projekakhirpam.ui.view.monitoring.MonitoringHomeView
+import com.example.projekakhirpam.ui.view.monitoring.MonitoringInsertView
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.Date
@@ -26,10 +29,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             ProjekAkhirPAMTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    KebunBinatangApp()
                 }
             }
         }
