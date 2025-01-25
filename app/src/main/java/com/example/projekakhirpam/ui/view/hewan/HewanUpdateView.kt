@@ -19,6 +19,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.projekakhirpam.ui.component.CustomTopAppBar
 import com.example.projekakhirpam.ui.component.SelectedTextField
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
 import com.example.projekakhirpam.ui.viewmodel.hewan.InsertHewanUiEvent
@@ -35,11 +36,22 @@ import java.lang.reflect.Modifier
 fun HewanUpdateView(
     onBack: () -> Unit,
     modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier,
-    viewModel: UpdateHewanVM = viewModel(factory = PenyediaViewModel.Factory)
+    viewModel: UpdateHewanVM = viewModel(factory = PenyediaViewModel.Factory),
+    isDarkTheme: Boolean,
+    onThemeChange: (Boolean) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold (
+        topBar = {
+            CustomTopAppBar(
+                judul = "Update Hewan",
+                showBackButton = true,
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange,
+                onBack = onBack
+            )
+        }
     ){ innerPadding ->
         EditBody(
             uiState = viewModel.uiState,

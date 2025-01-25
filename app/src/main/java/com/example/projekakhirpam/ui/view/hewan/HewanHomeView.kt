@@ -46,23 +46,35 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projekakhirpam.R
 import com.example.projekakhirpam.model.Hewan
+import com.example.projekakhirpam.ui.component.CustomTopAppBar
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
 import com.example.projekakhirpam.ui.viewmodel.hewan.HomeHewanUiState
 import com.example.projekakhirpam.ui.viewmodel.hewan.HomeHewanVM
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
 @Composable
 fun HewanHomeView(
     modifier: Modifier = Modifier,
     viewModel: HomeHewanVM = viewModel(factory = PenyediaViewModel.Factory),
     onDetailClick: (String) -> Unit = {},
-    onAddClick: () -> Unit
+    onAddClick: () -> Unit,
+    isDarkTheme: Boolean,
+    onThemeChange: (Boolean) -> Unit,
+    onBack: () -> Unit
 ) {
     val searchText by viewModel.searchText.collectAsState()
     val datas by viewModel.datas.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
     Scaffold (
+        topBar = {
+            CustomTopAppBar(
+                judul = "Daftar Hewan",
+                showBackButton = true,
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange,
+                onBack = onBack
+            )
+        }
     ){ innerPadding ->
         Column (
             modifier = Modifier

@@ -18,6 +18,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,6 +31,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.projekakhirpam.ui.component.CustomTopAppBar
 import com.example.projekakhirpam.ui.component.SelectedTextField
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
 import com.example.projekakhirpam.ui.viewmodel.hewan.InsertHewanUiEvent
@@ -42,11 +44,22 @@ import kotlinx.coroutines.launch
 fun HewanInsertView(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: InsertHewanVM = viewModel(factory = PenyediaViewModel.Factory)
+    viewModel: InsertHewanVM = viewModel(factory = PenyediaViewModel.Factory),
+    isDarkTheme: Boolean,
+    onThemeChange: (Boolean) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold (
+        topBar = {
+            CustomTopAppBar(
+                judul = "Tambah Hewan",
+                showBackButton = true,
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange,
+                onBack = onBack
+            )
+        }
     ){ innerPadding ->
         EntryBody(
             insertUiState = viewModel.uiState,

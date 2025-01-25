@@ -48,6 +48,11 @@ fun PengelolaHalaman(
                 },
                 onAddClick = {
                     navController.navigate(DestinasiHewanInsert.route)
+                },
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange,
+                onBack = {
+                    navController.navigate(DestinasiMaster.route)
                 }
             )
         }
@@ -68,7 +73,9 @@ fun PengelolaHalaman(
                     },
                     onEditClick = {
                         navController.navigate("${DestinasiHewanUpdate.route}/$id")
-                    }
+                    },
+                    isDarkTheme = isDarkTheme,
+                    onThemeChange = onThemeChange
                 )
             }
         }
@@ -78,6 +85,8 @@ fun PengelolaHalaman(
                 onBack = {
                     navController.navigate(DestinasiHewan.route)
                 },
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange
             )
         }
 
@@ -94,7 +103,9 @@ fun PengelolaHalaman(
                 HewanUpdateView(
                     onBack = {
                         navController.navigate(DestinasiHewan.route)
-                    }
+                    },
+                    isDarkTheme = isDarkTheme,
+                    onThemeChange = onThemeChange
                 )
             }
         }
