@@ -1,6 +1,5 @@
 package com.example.projekakhirpam.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -12,25 +11,67 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = primaryDarkContrast,
+    onPrimary = onPrimaryDarkContrast,
+    primaryContainer = primaryContainerDarkContrast,
+    onPrimaryContainer = onPrimaryContainerDarkContrast,
+    secondary = secondaryDarkContrast,
+    onSecondary = onSecondaryDarkContrast,
+    secondaryContainer = secondaryContainerDarkContrast,
+    onSecondaryContainer = onSecondaryContainerDarkContrast,
+    tertiary = tertiaryDarkContrast,
+    onTertiary = onTertiaryDarkContrast,
+    tertiaryContainer = tertiaryContainerDarkContrast,
+    onTertiaryContainer = onTertiaryContainerDarkContrast,
+    error = errorDarkContrast,
+    onError = onErrorDarkContrast,
+    errorContainer = errorContainerDarkContrast,
+    onErrorContainer = onErrorContainerDarkContrast,
+    background = backgroundDarkContrast,
+    onBackground = onBackgroundDarkContrast,
+    surface = surfaceDarkContrast,
+    onSurface = onSurfaceDarkContrast,
+    surfaceVariant = surfaceVariantDarkContrast,
+    onSurfaceVariant = onSurfaceVariantDarkContrast,
+    outline = outlineDarkContrast,
+    outlineVariant = outlineVariantDarkContrast,
+    scrim = scrimDarkContrast,
+    inverseSurface = inverseSurfaceDarkContrast,
+    inverseOnSurface = inverseOnSurfaceDarkContrast,
+    inversePrimary = inversePrimaryDarkContrast,
+
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = primaryLightContrast,
+    onPrimary = onPrimaryLightContrast,
+    primaryContainer = primaryContainerLightContrast,
+    onPrimaryContainer = onPrimaryContainerLightContrast,
+    secondary = secondaryLightContrast,
+    onSecondary = onSecondaryLightContrast,
+    secondaryContainer = secondaryContainerLightContrast,
+    onSecondaryContainer = onSecondaryContainerLightContrast,
+    tertiary = tertiaryLightContrast,
+    onTertiary = onTertiaryLightContrast,
+    tertiaryContainer = tertiaryContainerLightContrast,
+    onTertiaryContainer = onTertiaryContainerLightContrast,
+    error = errorLightContrast,
+    onError = onErrorLightContrast,
+    errorContainer = errorContainerLightContrast,
+    onErrorContainer = onErrorContainerLightContrast,
+    background = backgroundLightContrast,
+    onBackground = onBackgroundLightContrast,
+    surface = surfaceLightContrast,
+    onSurface = onSurfaceLightContrast,
+    surfaceVariant = surfaceVariantLightContrast,
+    onSurfaceVariant = onSurfaceVariantLightContrast,
+    outline = outlineLightContrast,
+    outlineVariant = outlineVariantLightContrast,
+    scrim = scrimLightContrast,
+    inverseSurface = inverseSurfaceLightContrast,
+    inverseOnSurface = inverseOnSurfaceLightContrast,
+    inversePrimary = inversePrimaryLightContrast,
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
 )
 
 @Composable

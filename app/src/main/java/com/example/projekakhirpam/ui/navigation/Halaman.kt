@@ -23,7 +23,9 @@ import com.example.projekakhirpam.ui.view.petugas.PetugasHomeView
 
 @Composable
 fun PengelolaHalaman(
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    isDarkTheme: Boolean,
+    onThemeChange: (Boolean) -> Unit
 ) {
     NavHost(
         navController = navController,
@@ -35,7 +37,7 @@ fun PengelolaHalaman(
                 navigateHewan = { navController.navigate(DestinasiHewan.route) },
                 navigateKandang = { navController.navigate(DestinasiKandang.route) },
                 navigateMonitoring = { navController.navigate(DestinasiMonitoring.route) },
-                navigatePetugas = { navController.navigate(DestinasiPetugas.route) }
+                navigatePetugas = { navController.navigate(DestinasiPetugas.route) },
             )
         }
         // HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN //
