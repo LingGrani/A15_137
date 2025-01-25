@@ -19,9 +19,10 @@ import com.example.projekakhirpam.ui.view.kandang.KandangHomeView
 import com.example.projekakhirpam.ui.view.kandang.KandangInsertView
 import com.example.projekakhirpam.ui.view.kandang.KandangUpdateView
 import com.example.projekakhirpam.ui.view.monitoring.MonitoringHomeView
+import com.example.projekakhirpam.ui.view.petugas.PetugasDetailView
 import com.example.projekakhirpam.ui.view.petugas.PetugasHomeView
-
-
+import com.example.projekakhirpam.ui.view.petugas.PetugasInsertView
+import com.example.projekakhirpam.ui.view.petugas.PetugasUpdateView
 
 
 @Composable
@@ -32,7 +33,7 @@ fun PengelolaHalaman(
 ) {
     NavHost(
         navController = navController,
-        startDestination = DestinasiKandang.route,
+        startDestination = DestinasiMaster.route,
         modifier = Modifier
     ) {
         composable(DestinasiMaster.route) {
@@ -183,12 +184,78 @@ fun PengelolaHalaman(
             }
         }
 
+        // MONITORING MONITORING MONITORING MONITORING MONITORING MONITORING MONITORING MONITORING MONITORING //
+
         composable(DestinasiMonitoring.route){
             MonitoringHomeView(
             )
         }
+
+        // PETUGAS PETUGAS PETUGAS PETUGAS PETUGAS PETUGAS PETUGAS PETUGAS PETUGAS PETUGAS PETUGAS PETUGAS PETUGAS //
         composable(DestinasiPetugas.route){
-            PetugasHomeView()
+            PetugasHomeView(
+                onDetailClick = { id ->
+                    navController.navigate("${DestinasiPetugasDetail.route}/$id")
+                },
+                onAddClick = {
+                    navController.navigate(DestinasiPetugasInsert.route)
+                },
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange,
+                onBack = {
+                    navController.navigate(DestinasiMaster.route)
+                }
+            )
+        }
+        composable(
+            DestinasiPetugasDetail.routeWithArgs,
+            arguments = listOf(
+                navArgument(DestinasiPetugasDetail.idArg){
+                    type = NavType.StringType
+                }
+            )
+        ){
+            val id = it.arguments?.getString(DestinasiPetugasDetail.idArg)
+            id?.let { id ->
+                PetugasDetailView(
+                    onBack = {
+                        navController.navigate(DestinasiPetugas.route)
+                    },
+                    isDarkTheme = isDarkTheme,
+                    onThemeChange = onThemeChange,
+                    onEditClick = {
+                        navController.navigate("${DestinasiPetugasUpdate.route}/$id")
+                    }
+                )
+            }
+        }
+        composable(
+            DestinasiPetugasUpdate.routeWithArgs,
+            arguments = listOf(
+                navArgument(DestinasiPetugasUpdate.idArg){
+                    type = NavType.StringType
+                }
+            )
+        ){
+            val id = it.arguments?.getString(DestinasiPetugasUpdate.idArg)
+            id?.let { id ->
+                PetugasUpdateView(
+                    onBack = {
+                        navController.navigate(DestinasiPetugas.route)
+                    },
+                    isDarkTheme = isDarkTheme,
+                    onThemeChange = onThemeChange,
+                )
+            }
+        }
+        composable(DestinasiPetugasInsert.route){
+            PetugasInsertView(
+                onBack = {
+                    navController.navigate(DestinasiPetugas.route)
+                },
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange,
+            )
         }
     }
 }
