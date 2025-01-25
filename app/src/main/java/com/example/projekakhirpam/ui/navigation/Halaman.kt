@@ -14,7 +14,10 @@ import com.example.projekakhirpam.ui.view.hewan.HewanDetailView
 import com.example.projekakhirpam.ui.view.hewan.HewanHomeView
 import com.example.projekakhirpam.ui.view.hewan.HewanInsertView
 import com.example.projekakhirpam.ui.view.hewan.HewanUpdateView
+import com.example.projekakhirpam.ui.view.kandang.KandangDetailView
 import com.example.projekakhirpam.ui.view.kandang.KandangHomeView
+import com.example.projekakhirpam.ui.view.kandang.KandangInsertView
+import com.example.projekakhirpam.ui.view.kandang.KandangUpdateView
 import com.example.projekakhirpam.ui.view.monitoring.MonitoringHomeView
 import com.example.projekakhirpam.ui.view.petugas.PetugasHomeView
 
@@ -29,7 +32,7 @@ fun PengelolaHalaman(
 ) {
     NavHost(
         navController = navController,
-        startDestination = DestinasiHewan.route,
+        startDestination = DestinasiKandang.route,
         modifier = Modifier
     ) {
         composable(DestinasiMaster.route) {
@@ -114,7 +117,70 @@ fun PengelolaHalaman(
         // KANDANG KANDANG KANDANG KANDANG KANDANG KANDANG KANDANG KANDANG KANDANG KANDANG KANDANG KANDANG KANDANG //
 
         composable(DestinasiKandang.route){
-            KandangHomeView()
+            KandangHomeView(
+                onDetailClick = { id ->
+                    navController.navigate("${DestinasiKandangDetail.route}/$id")
+                },
+                onAddClick = {
+                    navController.navigate(DestinasiKandangInsert.route)
+                },
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange,
+                onBack = {
+                    navController.navigate(DestinasiMaster.route)
+                }
+            )
+        }
+
+        composable(
+            DestinasiKandangDetail.routeWithArgs,
+            arguments = listOf(
+                navArgument(DestinasiKandangDetail.idArg){
+                    type = NavType.StringType
+                }
+            )
+        ){
+            val id = it.arguments?.getString(DestinasiKandangDetail.idArg)
+            id?.let { id ->
+                KandangDetailView(
+                    onBack = {
+                        navController.navigate(DestinasiKandang.route)
+                    },
+                    isDarkTheme = isDarkTheme,
+                    onThemeChange = onThemeChange,
+                    onEditClick = {
+                        navController.navigate("${DestinasiKandangUpdate.route}/$id")
+                    }
+                )
+            }
+        }
+        composable(DestinasiKandangInsert.route){
+            KandangInsertView(
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange,
+                onBack = {
+                    navController.navigate(DestinasiKandang.route)
+                }
+            )
+        }
+        composable(
+            DestinasiKandangUpdate.routeWithArgs,
+            arguments = listOf(
+                navArgument(DestinasiKandangUpdate.idArg){
+                    type = NavType.StringType
+                }
+            )
+        ){
+            val id = it.arguments?.getString(DestinasiKandangUpdate.idArg)
+            id?.let { id ->
+                KandangUpdateView(
+                    onBack = {
+                        navController.navigate(DestinasiKandang.route)
+                    },
+                    isDarkTheme = isDarkTheme,
+                    onThemeChange = onThemeChange,
+                )
+            }
         }
 
         composable(DestinasiMonitoring.route){

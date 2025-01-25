@@ -10,6 +10,10 @@ import com.example.projekakhirpam.ui.viewmodel.hewan.DetailHewanVM
 import com.example.projekakhirpam.ui.viewmodel.hewan.HomeHewanVM
 import com.example.projekakhirpam.ui.viewmodel.hewan.InsertHewanVM
 import com.example.projekakhirpam.ui.viewmodel.hewan.UpdateHewanVM
+import com.example.projekakhirpam.ui.viewmodel.kandang.DetailKandangVM
+import com.example.projekakhirpam.ui.viewmodel.kandang.HomeKandangVM
+import com.example.projekakhirpam.ui.viewmodel.kandang.InsertKandangVM
+import com.example.projekakhirpam.ui.viewmodel.kandang.UpdateKandangVM
 
 fun CreationExtras.aplikasiKebunBinatang(): KebunApplications =
 (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as KebunApplications)
@@ -25,5 +29,15 @@ object PenyediaViewModel{
         }
         initializer { InsertHewanVM(aplikasiKebunBinatang().container.kebunRepository) }
         initializer { UpdateHewanVM(createSavedStateHandle(), aplikasiKebunBinatang().container.kebunRepository) }
+
+        initializer { HomeKandangVM(aplikasiKebunBinatang().container.kebunRepository) }
+        initializer {
+            DetailKandangVM(
+                createSavedStateHandle(),
+                aplikasiKebunBinatang().container.kebunRepository
+            )
+        }
+        initializer { InsertKandangVM(aplikasiKebunBinatang().container.kebunRepository) }
+        initializer { UpdateKandangVM(createSavedStateHandle(), aplikasiKebunBinatang().container.kebunRepository) }
     }
 }
