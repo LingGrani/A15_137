@@ -1,5 +1,6 @@
 package com.example.projekakhirpam.repo
 
+import android.util.Log
 import com.example.projekakhirpam.model.Hewan
 import com.example.projekakhirpam.model.Kandang
 import com.example.projekakhirpam.model.Monitoring
@@ -37,6 +38,7 @@ class NetworkKebunRepository(private val kebunBinatangService: KebunBinatangServ
 
     // Hewan /////////////////////////////////////////////////////////////////////
     override suspend fun insertHewan(hewan: Hewan) {
+        Log.d("Hasil", hewan.toString())
         kebunBinatangService.insertHewan(hewan)
     }
     override suspend fun updateHewan(idHewan: Int, hewan: Hewan) {
