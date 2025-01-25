@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projekakhirpam.model.Hewan
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
+import com.example.projekakhirpam.ui.component.DeleteConfirmationDialog
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
 import com.example.projekakhirpam.ui.viewmodel.hewan.DetailHewanUiState
 import com.example.projekakhirpam.ui.viewmodel.hewan.DetailHewanVM
@@ -107,7 +108,8 @@ private fun DetailStatus (
                                 onDeleteClick()
                             },
                             onDeleteCancel = { deleteConfirmationRequired = false },
-                            modifier = Modifier.padding(8.dp)
+                            modifier = Modifier.padding(8.dp),
+                            pesan = "Apakah anda ingin mengahapus data?"
                         )
                     }
                     Button(
@@ -139,27 +141,4 @@ private fun DetailBody(
         }
         Text(data.zonaWilayah)
     }
-}
-@Composable
-private fun DeleteConfirmationDialog(
-    onDeleteConfirm: () -> Unit,
-    onDeleteCancel: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    AlertDialog(
-        onDismissRequest = { /* Do nothing */ },
-        title = { Text("Delete Data") },
-        text = { Text("Apakah anda yakin ingin menghapus data?") },
-        modifier = modifier,
-        dismissButton = {
-            TextButton(onClick = onDeleteCancel) {
-                Text(text = "Cancel")
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDeleteConfirm) {
-                Text(text = "Yes")
-            }
-        }
-    )
 }
