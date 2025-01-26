@@ -14,6 +14,10 @@ import com.example.projekakhirpam.ui.viewmodel.kandang.DetailKandangVM
 import com.example.projekakhirpam.ui.viewmodel.kandang.HomeKandangVM
 import com.example.projekakhirpam.ui.viewmodel.kandang.InsertKandangVM
 import com.example.projekakhirpam.ui.viewmodel.kandang.UpdateKandangVM
+import com.example.projekakhirpam.ui.viewmodel.monitoring.DetailMonitoringVM
+import com.example.projekakhirpam.ui.viewmodel.monitoring.HomeMonitoringVM
+import com.example.projekakhirpam.ui.viewmodel.monitoring.InsertMonitoringVM
+import com.example.projekakhirpam.ui.viewmodel.monitoring.UpdateMonitoringVM
 import com.example.projekakhirpam.ui.viewmodel.petugas.DetailPetugasVM
 import com.example.projekakhirpam.ui.viewmodel.petugas.HomePetugasVM
 import com.example.projekakhirpam.ui.viewmodel.petugas.InsertPetugasVM
@@ -53,5 +57,13 @@ object PenyediaViewModel{
         }
         initializer { InsertPetugasVM(aplikasiKebunBinatang().container.kebunRepository) }
         initializer { UpdatePetugasVM(createSavedStateHandle(), aplikasiKebunBinatang().container.kebunRepository) }
+
+        initializer { HomeMonitoringVM(aplikasiKebunBinatang().container.kebunRepository) }
+        initializer { DetailMonitoringVM(
+            createSavedStateHandle(),
+            aplikasiKebunBinatang().container.kebunRepository)
+        }
+        initializer { InsertMonitoringVM(aplikasiKebunBinatang().container.kebunRepository) }
+        initializer { UpdateMonitoringVM(createSavedStateHandle(), aplikasiKebunBinatang().container.kebunRepository) }
     }
 }
