@@ -23,6 +23,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -41,34 +42,38 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 fun TimeDatePickerSQL(
     modifier: Modifier = Modifier,
+    value: LocalDateTime = LocalDateTime.now(),
     onValueChangedEvent: (LocalDateTime) -> Unit,
 ) {
-    var datetime by remember { mutableStateOf<LocalDateTime?>(null) }
+    var datetime by remember { mutableStateOf(value) }
     Column {
-        Row (
+        Row(
             modifier = modifier
-        ){
+        ) {
             DatePickerFieldToModal(
                 modifier = Modifier.weight(3f),
-                date = {
-                    var test = convertMillisToYearMonthDay(it.selectedDateMillis)
-                    if (test != null) {
-                        datetime = datetime?.withYear(test.first)
-                        datetime = datetime?.withMonth(test.second)
-                        datetime = datetime?.withDayOfMonth(test.third)
+                date = { datePickerState ->
+                    val date = convertMillisToYearMonthDay(datePickerState.selectedDateMillis)
+                    if (date != null) {
+                        datetime = datetime.withYear(date.first)
+                            .withMonth(date.second)
+                            .withDayOfMonth(date.third)
+                        onValueChangedEvent(datetime)
                     }
-                }
+                },
+                value = value
             )
             TimePickerFieldToModal(
                 modifier = Modifier.weight(2f),
                 time = { timePickerState ->
-                    datetime = datetime?.withHour(timePickerState.hour)
-                    datetime = datetime?.withMinute(timePickerState.minute)
-                }
+                    datetime = datetime.withHour(timePickerState.hour)
+                        .withMinute(timePickerState.minute)
+                    onValueChangedEvent(datetime)
+                },
+                value = value
             )
         }
     }
-    datetime?.let { onValueChangedEvent(it) }
 }
 
 fun convertMillisToYearMonthDay(millis: Long?): Triple<Int, Int, Int>? {
@@ -86,13 +91,14 @@ fun convertMillisToYearMonthDay(millis: Long?): Triple<Int, Int, Int>? {
 @Composable
 fun DatePickerFieldToModal(
     modifier: Modifier = Modifier,
-    date: (DatePickerState) -> Unit
+    date: (DatePickerState) -> Unit,
+    value: LocalDateTime,
 ) {
-    var selectedDate by remember { mutableStateOf<Long?>(null) }
+    var selectedDate by remember { mutableLongStateOf(value.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()) }
     var showModal by remember { mutableStateOf(false) }
 
     OutlinedTextField(
-        value = selectedDate?.let { convertMillisToDate(it) } ?: "",
+        value = convertMillisToDate(selectedDate) ?: "",
         onValueChange = { },
         label = { Text("Date") },
         placeholder = { Text("MM/DD/YYYY") },
@@ -118,8 +124,9 @@ fun DatePickerFieldToModal(
     if (showModal) {
         DatePickerModal(
             onDateSelected = {
-                selectedDate = it.selectedDateMillis
-                date(it)},
+                selectedDate = it.selectedDateMillis ?: 0L
+                date(it)
+            },
             onDismiss = { showModal = false }
         )
     }
@@ -164,9 +171,10 @@ fun DatePickerModal(
 @Composable
 fun TimePickerFieldToModal(
     modifier: Modifier = Modifier,
-    time: (TimePickerState) -> Unit
+    time: (TimePickerState) -> Unit,
+    value: LocalDateTime,
 ) {
-    var selectedTime by remember { mutableStateOf("") }
+    var selectedTime by remember { mutableStateOf("${value.hour}:${value.minute}") }
     var showModal by remember { mutableStateOf(false) }
 
     OutlinedTextField(
