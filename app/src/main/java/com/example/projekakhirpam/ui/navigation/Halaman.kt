@@ -18,7 +18,10 @@ import com.example.projekakhirpam.ui.view.kandang.KandangDetailView
 import com.example.projekakhirpam.ui.view.kandang.KandangHomeView
 import com.example.projekakhirpam.ui.view.kandang.KandangInsertView
 import com.example.projekakhirpam.ui.view.kandang.KandangUpdateView
+import com.example.projekakhirpam.ui.view.monitoring.MonitoringDetailView
 import com.example.projekakhirpam.ui.view.monitoring.MonitoringHomeView
+import com.example.projekakhirpam.ui.view.monitoring.MonitoringInsertView
+import com.example.projekakhirpam.ui.view.monitoring.MonitoringUpdateView
 import com.example.projekakhirpam.ui.view.petugas.PetugasDetailView
 import com.example.projekakhirpam.ui.view.petugas.PetugasHomeView
 import com.example.projekakhirpam.ui.view.petugas.PetugasInsertView
@@ -188,7 +191,70 @@ fun PengelolaHalaman(
 
         composable(DestinasiMonitoring.route){
             MonitoringHomeView(
+                onDetailClick = { id ->
+                    navController.navigate("${DestinasiMonitoringDetail.route}/$id")
+                },
+                onAddClick = {
+                    navController.navigate(DestinasiMonitoringInsert.route)
+                },
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange,
+                onBack = {
+                    navController.navigate(DestinasiMaster.route)
+                }
             )
+        }
+        composable(
+            DestinasiMonitoringDetail.routeWithArgs,
+            arguments = listOf(
+                navArgument(DestinasiMonitoringDetail.idArg){
+                    type = NavType.StringType
+                }
+            )
+        ){
+            val id = it.arguments?.getString(DestinasiMonitoringDetail.idArg)
+            id?.let { id ->
+                MonitoringDetailView(
+                    onBack = {
+                        navController.navigate(DestinasiMonitoring.route)
+                    },
+                    isDarkTheme = isDarkTheme,
+                    onThemeChange = onThemeChange,
+                    onEditClick = {
+                        navController.navigate("${DestinasiMonitoringUpdate.route}/$id")
+                    }
+                )
+            }
+        }
+
+        composable(DestinasiMonitoringInsert.route){
+            MonitoringInsertView(
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange,
+                onBack = {
+                    navController.navigate(DestinasiMonitoring.route)
+                }
+            )
+        }
+
+        composable(
+            DestinasiMonitoringUpdate.routeWithArgs,
+            arguments = listOf(
+                navArgument(DestinasiMonitoringUpdate.idArg){
+                    type = NavType.StringType
+                }
+            )
+        ){
+            val id = it.arguments?.getString(DestinasiMonitoringUpdate.idArg)
+            id?.let { id ->
+                MonitoringUpdateView(
+                    onBack = {
+                        navController.navigate(DestinasiMonitoring.route)
+                    },
+                    isDarkTheme = isDarkTheme,
+                    onThemeChange = onThemeChange,
+                )
+            }
         }
 
         // PETUGAS PETUGAS PETUGAS PETUGAS PETUGAS PETUGAS PETUGAS PETUGAS PETUGAS PETUGAS PETUGAS PETUGAS PETUGAS //
