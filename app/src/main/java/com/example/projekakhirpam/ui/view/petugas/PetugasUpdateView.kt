@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -15,7 +16,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
-import com.example.projekakhirpam.ui.viewmodel.petugas.InsertPetugasUiEvent
 import com.example.projekakhirpam.ui.viewmodel.petugas.UpdatePetugasUiEvent
 import com.example.projekakhirpam.ui.viewmodel.petugas.UpdatePetugasUiState
 import com.example.projekakhirpam.ui.viewmodel.petugas.UpdatePetugasVM
@@ -62,9 +61,8 @@ fun PetugasUpdateView(
                     onBack()
                 }
             },
-            modifier = androidx.compose.ui.Modifier
+            modifier = Modifier
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
                 .fillMaxWidth()
         )
     }
@@ -75,7 +73,7 @@ private fun EditBody(
     uiState: UpdatePetugasUiState,
     onValueChange: (UpdatePetugasUiEvent) -> Unit,
     onSaveClick: () -> Unit,
-    modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier
+    modifier: Modifier = Modifier
 ) {
     Column (
         verticalArrangement = Arrangement.spacedBy(18.dp),
@@ -113,9 +111,9 @@ private fun Update(
             label = { Text("ID") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            readOnly = true
+            readOnly = true,
+            enabled = false
         )
-
         OutlinedTextField(
             value = uiEvent.namaPetugas,
             onValueChange = { onValueChange(uiEvent.copy(namaPetugas = it)) },

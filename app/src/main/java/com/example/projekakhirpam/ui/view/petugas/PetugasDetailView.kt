@@ -1,11 +1,18 @@
 package com.example.projekakhirpam.ui.view.petugas
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,12 +22,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.projekakhirpam.R
 import com.example.projekakhirpam.model.Petugas
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
 import com.example.projekakhirpam.ui.component.DeleteConfirmationDialog
+import com.example.projekakhirpam.ui.view.hewan.editDelete
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
 import com.example.projekakhirpam.ui.viewmodel.petugas.DetailPetugasUiState
 import com.example.projekakhirpam.ui.viewmodel.petugas.DetailPetugasVM
@@ -83,11 +94,10 @@ private fun DetailStatus (
                         data = detailUiState.petugas,
                         modifier = modifier,
                     )
-                    Button(
-                        onClick = { deleteConfirmationRequired = true },
-                    ) {
-                        Text(text = "Delete")
-                    }
+                    editDelete(
+                        edit = { onEditClick(detailUiState.petugas.idPetugas.toString()) },
+                        delete = { deleteConfirmationRequired = true }
+                    )
                     if (deleteConfirmationRequired) {
                         DeleteConfirmationDialog(
                             onDeleteConfirm = {
@@ -98,11 +108,6 @@ private fun DetailStatus (
                             modifier = Modifier.padding(8.dp),
                             pesan = "Apakah Anda Ingin Menghapus Data?"
                         )
-                    }
-                    Button(
-                        onClick = { onEditClick(detailUiState.petugas.idPetugas.toString()) }
-                    ) {
-                        Text(text = "Edit")
                     }
                 }
             }
@@ -118,14 +123,70 @@ private fun DetailBody(
     modifier: Modifier = Modifier,
     data: Petugas
 ) {
-    Column (
+    val logoJabatan: Painter = when (data.jabatan) {
+        "Keeper" -> painterResource(R.drawable.paw)
+        "Dokter Hewan" -> painterResource(R.drawable.doctor)
+        "Kurator" -> painterResource(R.drawable.curator)
+        else -> painterResource(R.drawable.question)
+    }
+
+    Column(
         modifier = modifier
-    ){
-        Text("ID Petugas")
-        Text(data.idPetugas.toString())
-        Text("Nama Petugas")
-        Text(data.namaPetugas)
-        Text("Jabatan")
-        Text(data.jabatan)
+            .fillMaxWidth()
+            .padding(16.dp)
+            .background(
+                color = MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Icon
+        Icon(
+            painter = logoJabatan,
+            contentDescription = null,
+            modifier = Modifier
+                .size(64.dp)
+                .padding(bottom = 16.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+
+        // ID Petugas
+        Text(
+            text = "ID Petugas",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = data.idPetugas.toString(),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Nama Petugas
+        Text(
+            text = "Nama Petugas",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = data.namaPetugas,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Jabatan
+        Text(
+            text = "Jabatan",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = data.jabatan,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.primary
+        )
     }
 }

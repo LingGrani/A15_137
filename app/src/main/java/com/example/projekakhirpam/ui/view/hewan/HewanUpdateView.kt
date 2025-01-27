@@ -64,7 +64,6 @@ fun HewanUpdateView(
             },
             modifier = androidx.compose.ui.Modifier
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
                 .fillMaxWidth()
         )
     }
@@ -112,7 +111,8 @@ private fun UpdateHewan(
             label = { Text("ID") },
             modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            readOnly = true
+            readOnly = true,
+            enabled = false
         )
         OutlinedTextField(
             value = uiEvent.namaHewan,

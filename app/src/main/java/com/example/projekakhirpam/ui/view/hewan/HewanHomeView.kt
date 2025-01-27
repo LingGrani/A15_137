@@ -1,6 +1,10 @@
 package com.example.projekakhirpam.ui.view.hewan
 
 import android.util.Log
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,6 +22,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -34,22 +41,41 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projekakhirpam.R
 import com.example.projekakhirpam.model.Hewan
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
+import com.example.projekakhirpam.ui.component.footer
+import com.example.projekakhirpam.ui.theme.herbivora
+import com.example.projekakhirpam.ui.theme.karnivora
+import com.example.projekakhirpam.ui.theme.omnivora
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
 import com.example.projekakhirpam.ui.viewmodel.hewan.HomeHewanUiState
 import com.example.projekakhirpam.ui.viewmodel.hewan.HomeHewanVM
+import kotlinx.coroutines.delay
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.CardDefaults
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,6 +100,28 @@ fun HewanHomeView(
                 onThemeChange = onThemeChange,
                 onBack = onBack
             )
+        },
+        floatingActionButton = {
+            IconButton(
+                onClick = onAddClick,
+                modifier = Modifier.padding(4.dp)
+                    .background(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(30))
+                    .size(64.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+        },
+        bottomBar = {
+            Spacer(modifier = Modifier.height(64.dp))
+            Icon(
+                imageVector = Icons.Default.Refresh,
+                contentDescription = null,
+            )
         }
     ){ innerPadding ->
         Column (
@@ -88,19 +136,6 @@ fun HewanHomeView(
                 ,
                 verticalAlignment = Alignment.CenterVertically
             ){
-                IconButton(
-                    onClick = onAddClick,
-                    modifier = Modifier.padding(4.dp)
-                        .background(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(100))
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
-                Spacer(Modifier.padding(8.dp))
                 OutlinedTextField(
                     value = searchText,
                     onValueChange = viewModel::onSearchTextChange,
@@ -150,7 +185,8 @@ private fun HomeStatus (
         is HomeHewanUiState.Success ->
             if (datas.isEmpty()) {
                 return Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "Tidak ada data kontak")
+                    Text(text = "Tidak ada data")
+                    OnLoading()
                 }
             } else {
                 Layout (
@@ -166,49 +202,29 @@ private fun HomeStatus (
 }
 
 @Composable
-fun OnLoading(modifier: Modifier = Modifier) {
-    Image (
-        modifier = modifier.size(200.dp),
-        painter = painterResource(R.drawable.question),
-        contentDescription = null
-    )
-}
-
-@Composable
-fun OnError(retryAction:() -> Unit, modifier: Modifier = Modifier) {
-    Column (
-        modifier = modifier,
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_launcher_foreground), contentDescription = ""
-        )
-        Button(onClick = retryAction) {
-            Text("Coba lagi")
-        }
-    }
-}
-
-@Composable
 private fun Layout (
     item1: List<Hewan>,
     modifier: Modifier = Modifier,
     onDetailClick: (String) -> Unit = {},
 ) {
-    LazyColumn (
-        modifier = modifier,
-        contentPadding = PaddingValues(bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ){
-        items(item1) { one ->
-            val id = one.idHewan.toString()
-            HomeCard(
-                hewan = one,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onDetailClick(id) }
-            )
+    Column {
+        LazyColumn (
+            modifier = modifier,
+            contentPadding = PaddingValues(bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ){
+            items(item1) { one ->
+                val id = one.idHewan.toString()
+                HomeCard(
+                    hewan = one,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onDetailClick(id) }
+                )
+            }
+            item {
+                footer()
+            }
         }
     }
 }
@@ -217,31 +233,18 @@ private fun HomeCard(
     hewan: Hewan,
     modifier: Modifier = Modifier,
 ){
-    val warna:Color
-    val logoPakan:Painter
-    when (hewan.tipePakan) {
-        "Herbivora" -> {
-            warna = Color.Green
-            logoPakan = painterResource(R.drawable.herbivora)
-        }
-        "Karnivora" -> {
-            warna = Color.Red
-            logoPakan = painterResource(R.drawable.karnivora)
-        }
-        "Omnivora" -> {
-            warna = Color.Cyan
-            logoPakan = painterResource(R.drawable.omnivora)
-        }
-        else -> {
-            warna = Color.LightGray
-            logoPakan = painterResource(R.drawable.question)
-        }
+    val (warna, logoPakan) = when (hewan.tipePakan) {
+        "Herbivora" -> herbivora to painterResource(R.drawable.herbivora)
+        "Karnivora" -> karnivora to painterResource(R.drawable.karnivora)
+        "Omnivora" -> omnivora to painterResource(R.drawable.omnivora)
+        else -> Color.LightGray to painterResource(R.drawable.question)
     }
     Card(
         modifier = modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .border(3.dp, color = warna , shape = RoundedCornerShape(12.dp))
+            .border(3.dp, color = warna , shape = RoundedCornerShape(12.dp)),
+        elevation = CardDefaults.cardElevation(4.dp)
     ){
         Column (
             modifier = Modifier
@@ -260,7 +263,7 @@ private fun HomeCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        MaterialTheme.colorScheme.background,
+                        MaterialTheme.colorScheme.surface,
                         shape = RoundedCornerShape(12.dp)
                     )
                     .padding(8.dp),
@@ -270,8 +273,16 @@ private fun HomeCard(
                     modifier = Modifier
                         .weight(9f),
                 ){
-                    Text(hewan.namaHewan)
-                    Text(hewan.tipePakan)
+                    Text(
+                        text = hewan.namaHewan,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = warna
+                    )
+                    Text(
+                        hewan.tipePakan,
+                        fontWeight = FontWeight.Bold,
+                    )
                     Row {
                         Text("Populasi: ")
                         Text(hewan.populasi.toString())
@@ -286,6 +297,91 @@ private fun HomeCard(
                     tint = MaterialTheme.colorScheme.onBackground
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun editDelete(
+    edit: () -> Unit,
+    delete: () -> Unit
+){
+    Row (
+        modifier = Modifier
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ){
+        IconButton(
+            onClick = edit,
+            modifier = Modifier.padding(4.dp)
+                .background(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(30))
+                .size(64.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.edit),
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+        IconButton(
+            onClick = delete,
+            modifier = Modifier.padding(4.dp)
+                .background(color = MaterialTheme.colorScheme.error, shape = RoundedCornerShape(30))
+                .size(64.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.delete),
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
+}
+
+@Composable
+fun OnLoading(
+    modifier: Modifier = Modifier,
+    icon: Painter = painterResource(R.drawable.loading),
+    contentDescription: String? = "Loading"
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "")
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ), label = ""
+    )
+
+    // Ikon dengan rotasi
+    Icon(
+        painter = icon,
+        contentDescription = contentDescription,
+        modifier = modifier
+            .size(216.dp)
+            .graphicsLayer {
+                rotationZ = rotation
+            },
+        tint = MaterialTheme.colorScheme.primary
+    )
+}
+
+@Composable
+fun OnError(retryAction:() -> Unit, modifier: Modifier = Modifier) {
+    Column (
+        modifier = modifier,
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_launcher_foreground), contentDescription = ""
+        )
+        Button(onClick = retryAction) {
+            Text("Coba lagi")
         }
     }
 }

@@ -72,7 +72,6 @@ fun HewanInsertView(
             },
             modifier = Modifier
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
                 .fillMaxWidth()
         )
     }
@@ -115,13 +114,6 @@ fun InsertHewan(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        OutlinedTextField(
-            value = insertUiEvent.idHewan,
-            onValueChange = {onValueChange(insertUiEvent.copy(idHewan = it))},
-            label = { Text("ID") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        )
         OutlinedTextField(
             value = insertUiEvent.namaHewan,
             onValueChange = {onValueChange(insertUiEvent.copy(namaHewan = it))},

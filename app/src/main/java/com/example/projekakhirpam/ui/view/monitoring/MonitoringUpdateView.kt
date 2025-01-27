@@ -77,7 +77,6 @@ fun MonitoringUpdateView(
             },
             modifier = Modifier
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
                 .fillMaxWidth(),
             data1 = kandangUiState,
             data2 = petugasUiState

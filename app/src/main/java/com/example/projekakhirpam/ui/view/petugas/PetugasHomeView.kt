@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
@@ -33,6 +34,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
@@ -42,6 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projekakhirpam.R
 import com.example.projekakhirpam.model.Petugas
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
+import com.example.projekakhirpam.ui.component.footer
 import com.example.projekakhirpam.ui.view.hewan.OnError
 import com.example.projekakhirpam.ui.view.hewan.OnLoading
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
@@ -70,6 +73,21 @@ fun PetugasHomeView(
                 onThemeChange = onThemeChange,
                 onBack = onBack
             )
+        },
+        floatingActionButton = {
+            IconButton(
+                onClick = onAddClick,
+                modifier = Modifier.padding(4.dp)
+                    .background(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(30))
+                    .size(64.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         }
     ){ innerPadding ->
         Column (
@@ -77,37 +95,15 @@ fun PetugasHomeView(
                 .padding(innerPadding)
                 .padding(8.dp)
         ){
-            Row (
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp, end = 8.dp)
-                ,
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                IconButton(
-                    onClick = onAddClick,
-                    modifier = Modifier.padding(4.dp)
-                        .background(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(100))
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
+            OutlinedTextField(
+                value = searchText,
+                onValueChange = viewModel::onSearchTextChange,
+                label = { Text("Search") },
+                modifier = Modifier.fillMaxWidth(),
+                leadingIcon = {
+                    Icon(imageVector = Icons.Default.Search, contentDescription = null)
                 }
-                Spacer(Modifier.padding(8.dp))
-                OutlinedTextField(
-                    value = searchText,
-                    onValueChange = viewModel::onSearchTextChange,
-                    label = { Text("Search") },
-                    modifier = Modifier.fillMaxWidth(),
-                    leadingIcon = {
-                        Icon(imageVector = Icons.Default.Search, contentDescription = null)
-                    }
-                )
-
-            }
+            )
             Divider(
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
@@ -181,6 +177,9 @@ private fun Layout (
                 onClick = { onDetailClick(id) }
             )
         }
+        item{
+            footer()
+        }
     }
 }
 
@@ -189,38 +188,56 @@ private fun HomeCard(
     data: Petugas,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
-){
-    val logoJabatan: Painter
-    when (data.jabatan) {
-        "Keeper" -> {
-            logoJabatan = painterResource(R.drawable.paw)
-        }
-        "Dokter Hewan" -> {
-            logoJabatan = painterResource(R.drawable.doctor)
-        }
-        "Kurator" -> {
-            logoJabatan = painterResource(R.drawable.curator)
-        }
-        else -> {
-            logoJabatan = painterResource(R.drawable.question)
-        }
+) {
+    val logoJabatan: Painter = when (data.jabatan) {
+        "Keeper" -> painterResource(R.drawable.paw)
+        "Dokter Hewan" -> painterResource(R.drawable.doctor)
+        "Kurator" -> painterResource(R.drawable.curator)
+        else -> painterResource(R.drawable.question)
     }
-    Card (
+
+    Card(
         modifier = Modifier
-            .padding(top = 18.dp)
+            .padding(vertical = 8.dp, horizontal = 16.dp)
             .fillMaxWidth()
-            .clickable { onClick() }
-    ){
-        Row {
-            Icon(
-                painter = logoJabatan,
-                contentDescription = null
-            )
-            Text(data.namaPetugas)
-            Text(data.jabatan)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = logoJabatan,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .padding(end = 16.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Column {
+                    Text(
+                        text = data.namaPetugas,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = data.jabatan,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
             Icon(
                 painter = painterResource(R.drawable.arrow_right),
-                contentDescription = null
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

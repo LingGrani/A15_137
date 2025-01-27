@@ -22,7 +22,10 @@ class InsertHewanVM(private val repository: KebunRepository) : ViewModel() {
         viewModelScope.launch {
             try {
                 repository.insertHewan(uiState.insertHewanUiEvent.toData())
+                Log.d("Hasil", "Hewan berhasil ditambahkan")
+                Log.d("Hasil", uiState.insertHewanUiEvent.toString())
             } catch (e:Exception){
+                Log.d("Hasil", "Gagal")
                 e.printStackTrace()
             }
         }
@@ -34,7 +37,7 @@ data class InsertHewanUiState(
 )
 
 data class InsertHewanUiEvent(
-    val idHewan: String = "",
+    val idHewan: String = "0",
     val namaHewan: String = "",
     val tipePakan: String = "",
     val populasi: String = "",

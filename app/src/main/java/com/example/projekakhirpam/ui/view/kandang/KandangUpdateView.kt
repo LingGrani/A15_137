@@ -1,7 +1,10 @@
 package com.example.projekakhirpam.ui.view.kandang
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -15,13 +18,21 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
 import com.example.projekakhirpam.ui.component.SelectedTextField
+import com.example.projekakhirpam.ui.view.hewan.OnLoading
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
 import com.example.projekakhirpam.ui.viewmodel.hewan.HomeHewanUiState
 import com.example.projekakhirpam.ui.viewmodel.hewan.HomeHewanVM
@@ -65,7 +76,6 @@ fun KandangUpdateView(
             },
             modifier = Modifier
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
                 .fillMaxWidth(),
             data = hewanUiState
         )
@@ -80,26 +90,35 @@ private fun EditBody(
     modifier: Modifier = Modifier,
     data: HomeHewanUiState
 ) {
-    val list: List<Pair<Int?, String?>> = when (data) {
-        is HomeHewanUiState.Success -> data.hewanList.map { it.idHewan to it.namaHewan }
-        else -> listOf(null to null)
-    }
-    Column (
-        verticalArrangement = Arrangement.spacedBy(18.dp),
-        modifier = modifier.padding(12.dp)
-    ){
-        Update(
-            uiEvent = uiState.updateKandangUiEvent,
-            onValueChange = onValueChange,
-            data = list
-        )
-        Button (
-            onClick = onSaveClick,
-            shape = MaterialTheme.shapes.small,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Simpan")
-        }
+    when(data){
+        is HomeHewanUiState.Loading -> OnLoading(modifier = modifier.fillMaxSize())
+        is HomeHewanUiState.Success ->
+            if (data.hewanList.isEmpty()) {
+                return Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = "Tidak ada data")
+                    OnLoading()
+                }
+            } else {
+                val list: List<Pair<Int?, String?>> = data.hewanList.map { it.idHewan to it.namaHewan }
+                Column (
+                    verticalArrangement = Arrangement.spacedBy(18.dp),
+                    modifier = modifier.padding(12.dp)
+                ){
+                    Update(
+                        uiEvent = uiState.updateKandangUiEvent,
+                        onValueChange = onValueChange,
+                        data = list,
+                    )
+                    Button (
+                        onClick = onSaveClick,
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Simpan")
+                    }
+                }
+            }
+        is HomeHewanUiState.Error -> TODO()
     }
 }
 
@@ -107,8 +126,13 @@ private fun EditBody(
 private fun Update(
     uiEvent: UpdateKandangUiEvent,
     onValueChange: (UpdateKandangUiEvent) -> Unit,
-    data: List<Pair<Int?, String?>>
+    data: List<Pair<Int?, String?>>,
 ) {
+    var namaHewan by remember {
+        mutableStateOf(
+            data.find { it.first == uiEvent.idHewan.toIntOrNull() }?.second ?: ""
+        )
+    }
     Column (
         modifier = Modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -118,20 +142,34 @@ private fun Update(
             onValueChange = {onValueChange(uiEvent.copy(idKandang = it))},
             label = { Text("ID Kandang") },
             modifier = Modifier.fillMaxWidth(),
-            readOnly = true
+            readOnly = true,
+            enabled = false
         )
-        SelectedTextField(
-            selectedValue = uiEvent.idHewan,
-            options = data.map { it.second ?: "" },
-            label = "Hewan",
-            onValueChangedEvent = { selectedName ->
-                val selectedId = data.find { it.second == selectedName }?.first
-                if (selectedId != null) {
-                    onValueChange(uiEvent.copy(idHewan = selectedId.toString()))
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
+        Row (
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            SelectedTextField(
+                selectedValue = uiEvent.idHewan,
+                options = data.map { it.second ?: "" },
+                label = "Hewan",
+                onValueChangedEvent = { selectedName ->
+                    val selectedId = data.find { it.second == selectedName }?.first
+                    if (selectedId != null) {
+                        onValueChange(uiEvent.copy(idHewan = selectedId.toString()))
+                        namaHewan = selectedName
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().weight(4f)
+            )
+            Text(
+                namaHewan,
+                modifier = Modifier.weight(7f).padding(16.dp),
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp
+            )
+        }
         OutlinedTextField(
             value = uiEvent.kapasitas,
             onValueChange = {onValueChange(uiEvent.copy(kapasitas = it))},

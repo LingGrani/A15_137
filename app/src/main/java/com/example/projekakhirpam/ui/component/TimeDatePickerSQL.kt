@@ -6,14 +6,13 @@ import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,6 +29,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
+import com.example.projekakhirpam.R
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
@@ -103,7 +104,11 @@ fun DatePickerFieldToModal(
         label = { Text("Date") },
         placeholder = { Text("MM/DD/YYYY") },
         trailingIcon = {
-            Icon(Icons.Default.DateRange, contentDescription = "Select date")
+            Icon(
+                painter = painterResource(R.drawable.date),
+                contentDescription = "Select date",
+                tint = MaterialTheme.colorScheme.primary
+            )
         },
         modifier = modifier
             .fillMaxWidth()
@@ -183,7 +188,11 @@ fun TimePickerFieldToModal(
         label = { Text("Time") },
         placeholder = { Text("HH/MM") },
         trailingIcon = {
-            Icon(Icons.Default.DateRange, contentDescription = "Select date")
+            Icon(
+                painter = painterResource(R.drawable.time),
+                contentDescription = "Select date",
+                tint = MaterialTheme.colorScheme.primary
+            )
         },
         modifier = modifier
             .fillMaxWidth()

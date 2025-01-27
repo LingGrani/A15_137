@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
@@ -37,12 +38,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projekakhirpam.R
 import com.example.projekakhirpam.model.Kandang
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
+import com.example.projekakhirpam.ui.component.footer
+import com.example.projekakhirpam.ui.theme.herbivora
+import com.example.projekakhirpam.ui.theme.karnivora
+import com.example.projekakhirpam.ui.theme.omnivora
 import com.example.projekakhirpam.ui.view.hewan.OnError
 import com.example.projekakhirpam.ui.view.hewan.OnLoading
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
@@ -75,6 +82,21 @@ fun KandangHomeView(
                 onThemeChange = onThemeChange,
                 onBack = onBack
             )
+        },
+        floatingActionButton = {
+            IconButton(
+                onClick = onAddClick,
+                modifier = Modifier.padding(4.dp)
+                    .background(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(30))
+                    .size(64.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         }
     ){ innerPadding ->
         Column (
@@ -89,19 +111,6 @@ fun KandangHomeView(
                 ,
                 verticalAlignment = Alignment.CenterVertically
             ){
-                IconButton(
-                    onClick = onAddClick,
-                    modifier = Modifier.padding(4.dp)
-                        .background(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(100))
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
-                Spacer(Modifier.padding(8.dp))
                 OutlinedTextField(
                     value = searchText,
                     onValueChange = viewModel::onSearchTextChange,
@@ -151,6 +160,7 @@ private fun HomeStatus(
             if (datas.isEmpty()) {
                 return Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(text = "Tidak ada data")
+                    OnLoading()
                 }
             } else {
                 Layout (
@@ -185,6 +195,9 @@ private fun Layout (
                 onClick = { onDetailClick(id) }
             )
         }
+        item {
+            footer()
+        }
     }
 }
 
@@ -194,19 +207,23 @@ private fun HomeCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ){
+    val warna = when (data.hewan?.tipePakan) {
+        "Herbivora" -> herbivora
+        "Karnivora" -> karnivora
+        "Omnivora" -> omnivora
+        else -> Color.DarkGray
+    }
     Card(
         modifier = Modifier
-            .padding(top = 18.dp)
+            .padding(top = 6.dp)
             .fillMaxWidth()
-            .clickable { onClick() }
+            .clickable { onClick() },
+        elevation = CardDefaults.cardElevation(4.dp)
     ){
         Row(
             modifier = Modifier
+                .background(color = warna)
                 .fillMaxWidth()
-                .background(
-                    MaterialTheme.colorScheme.background,
-                    shape = RoundedCornerShape(12.dp)
-                )
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -215,8 +232,13 @@ private fun HomeCard(
                     .padding(8.dp)
                     .weight(9f)
             ){
-                data.hewan?.let { Text(it.namaHewan) }
-                Text(data.kandang.lokasi)
+                data.hewan?.let { Text(
+                    it.namaHewan,
+                    color = MaterialTheme.colorScheme.background,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                ) }
+                Text(data.kandang.lokasi, color = MaterialTheme.colorScheme.background, fontWeight = FontWeight.Medium)
             }
             Icon(
                 painter = painterResource(R.drawable.arrow_right),
@@ -224,34 +246,8 @@ private fun HomeCard(
                 modifier = Modifier
                     .size(24.dp)
                     .weight(1f),
-                tint = MaterialTheme.colorScheme.onBackground
+                tint = MaterialTheme.colorScheme.background
             )
         }
     }
 }
-
-@Composable
-fun OnLoading(modifier: Modifier = Modifier) {
-    Image (
-        modifier = modifier.size(200.dp),
-        painter = painterResource(R.drawable.question),
-        contentDescription = null
-    )
-}
-
-@Composable
-fun OnError(retryAction:() -> Unit, modifier: Modifier = Modifier) {
-    Column (
-        modifier = modifier,
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_launcher_foreground), contentDescription = ""
-        )
-        Button(onClick = retryAction) {
-            Text("Coba lagi")
-        }
-    }
-}
-

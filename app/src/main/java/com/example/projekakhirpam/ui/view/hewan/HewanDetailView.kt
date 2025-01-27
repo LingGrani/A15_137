@@ -1,25 +1,21 @@
 package com.example.projekakhirpam.ui.view.hewan
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,12 +23,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.projekakhirpam.R
 import com.example.projekakhirpam.model.Hewan
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
 import com.example.projekakhirpam.ui.component.DeleteConfirmationDialog
+import com.example.projekakhirpam.ui.theme.herbivora
+import com.example.projekakhirpam.ui.theme.karnivora
+import com.example.projekakhirpam.ui.theme.omnivora
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
 import com.example.projekakhirpam.ui.viewmodel.hewan.DetailHewanUiState
 import com.example.projekakhirpam.ui.viewmodel.hewan.DetailHewanVM
@@ -91,16 +93,19 @@ private fun DetailStatus (
                     Text(text = "Tidak ada data")
                 }
             } else {
-                Column {
+                Column (
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
                     DetailBody (
                         data = detailUiState.hewan,
                         modifier = modifier,
                     )
-                    Button(
-                        onClick = { deleteConfirmationRequired = true },
-                    ) {
-                        Text(text = "Delete")
-                    }
+                    editDelete(
+                        edit = { onEditClick(detailUiState.hewan.idHewan.toString()) },
+                        delete = { deleteConfirmationRequired = true }
+                    )
                     if (deleteConfirmationRequired) {
                         DeleteConfirmationDialog(
                             onDeleteConfirm = {
@@ -111,11 +116,6 @@ private fun DetailStatus (
                             modifier = Modifier.padding(8.dp),
                             pesan = "Apakah anda ingin mengahapus data?"
                         )
-                    }
-                    Button(
-                        onClick = { onEditClick(detailUiState.hewan.idHewan.toString()) }
-                    ) {
-                        Text(text = "Edit")
                     }
                 }
             }
@@ -128,17 +128,58 @@ private fun DetailBody(
     data: Hewan,
     modifier: Modifier = Modifier
 ) {
+    val (warna, logoPakan) = when (data.tipePakan) {
+        "Herbivora" -> herbivora to painterResource(R.drawable.herbivora)
+        "Karnivora" -> karnivora to painterResource(R.drawable.karnivora)
+        "Omnivora" -> omnivora to painterResource(R.drawable.omnivora)
+        else -> Color.LightGray to painterResource(R.drawable.question)
+    }
     Column (
-        modifier = modifier
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(64.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ){
-        Text(data.idHewan.toString())
-        Text(data.namaHewan)
-        Text(data.tipePakan)
-        Row(
+        Spacer(modifier = modifier)
+        Column (
+            modifier = Modifier
+                .background (color = warna, shape = RoundedCornerShape(10))
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ){
-            Text("Populasi")
-            Text(data.populasi.toString())
+            Icon(
+                painter = logoPakan,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(32.dp)
+                    .size(128.dp)
+                    .background(color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(100))
+                    .padding(16.dp),
+                tint = warna
+            )
+            Column (
+                modifier = Modifier
+                    .background(color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(20))
+                    .padding(16.dp)
+            ){
+                InfoRow("ID Hewan", data.idHewan.toString())
+                InfoRow("Nama Hewan", data.namaHewan)
+                InfoRow("Tipe Pakan", data.tipePakan)
+                InfoRow("Populasi", data.populasi.toString())
+                InfoRow("Zona Wilayah", data.zonaWilayah)
+            }
         }
-        Text(data.zonaWilayah)
+    }
+}
+
+@Composable
+private fun InfoRow(label: String, value: String) {
+    Row (
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ){
+        Text("$label: ", fontWeight = FontWeight.Bold)
+        Text(value)
     }
 }

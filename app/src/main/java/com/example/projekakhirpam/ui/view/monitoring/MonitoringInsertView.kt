@@ -60,11 +60,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.motionEventSpy
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.Popup
@@ -125,7 +128,6 @@ fun MonitoringInsertView(
             },
             modifier = Modifier
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
                 .fillMaxWidth(),
             data1 = kandangUiState,
             data2 = petugasUiState
@@ -203,18 +205,11 @@ private fun Insert(
     Column(
         modifier = Modifier,
     ) {
-        OutlinedTextField(
-            value = insertUiEvent.idMonitoring,
-            onValueChange = { nilai ->
-                if (nilai.all { it.isDigit() }) {
-                    onValueChange(insertUiEvent.copy(idMonitoring = nilai))
-                }
-            },
-            label = { Text("ID Monitoring") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-        )
-        Row {
+        Row (
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ){
             SelectedTextField(
                 selectedValue = insertUiEvent.idKandang,
                 options = data1.map { it.hewan?.namaHewan ?: "" },
@@ -234,12 +229,22 @@ private fun Insert(
             )
             Text(
                 selectedHewanKandang,
-                modifier = Modifier.weight(2f)
+                modifier = Modifier.weight(2f).padding(16.dp),
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp
             )
         }
-
+        Text(
+            "Populasi: $selectedPopulasi",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
         // Pilih Petugas
-        Row {
+        Row (
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ){
             SelectedTextField(
                 selectedValue = insertUiEvent.idPetugas,
                 options = data2.map { it.namaPetugas },
@@ -248,16 +253,24 @@ private fun Insert(
                     val selectedId = data2.find { it.namaPetugas == selectedName }?.idPetugas
                     if (selectedId != null) {
                         onValueChange(insertUiEvent.copy(idPetugas = selectedId.toString()))
+                        selectedNamaPetugas = selectedName
+                        selectedJabatanPetugas = data2.find { it.namaPetugas == selectedName }?.jabatan ?: ""
                     }
                 },
                 modifier = Modifier.weight(1f)
             )
             Text(
                 selectedNamaPetugas,
-                modifier = Modifier.weight(2f)
+                modifier = Modifier.weight(2f).padding(16.dp),
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp
             )
         }
-        Text(selectedJabatanPetugas)
+        Text(
+            selectedJabatanPetugas,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
         // Pilih Waktu
         TimeDatePickerSQL(
             onValueChangedEvent = {
@@ -294,8 +307,12 @@ private fun Insert(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
         }
-        Row {
-            Text("Status: ${insertUiEvent.status}")
+        Row (
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Text("Status: ${insertUiEvent.status}", modifier = Modifier.weight(3f), fontWeight = FontWeight.Bold)
             Button(
                 onClick = {
                     updateStatus(
@@ -307,13 +324,13 @@ private fun Insert(
                             valid(value != "Data Tidak Valid")
                         }
                     )
-                }
+                },
+                shape = MaterialTheme.shapes.small,
+                modifier = Modifier.weight(1f)
             ) {
                 Text("Update")
             }
         }
-        Text(insertUiEvent.tanggal)
-        Text(selectedPopulasi.toString())
     }
 }
 
@@ -323,7 +340,10 @@ fun updateStatus(
     sehat: Int = 0,
     update: (String) -> Unit
 ) {
-    // Pastikan populasi, sakit, dan sehat sesuai
+    if (populasi == 0) {
+        update("Data Tidak Valid")
+        return
+    }
     if (populasi == (sakit + sehat)) {
         // Hitung status berdasarkan persentase hewan sakit
         val status = when {

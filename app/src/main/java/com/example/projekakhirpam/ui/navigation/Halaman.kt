@@ -45,6 +45,8 @@ fun PengelolaHalaman(
                 navigateKandang = { navController.navigate(DestinasiKandang.route) },
                 navigateMonitoring = { navController.navigate(DestinasiMonitoring.route) },
                 navigatePetugas = { navController.navigate(DestinasiPetugas.route) },
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange,
             )
         }
         // HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN HEWAN //
@@ -59,7 +61,7 @@ fun PengelolaHalaman(
                 isDarkTheme = isDarkTheme,
                 onThemeChange = onThemeChange,
                 onBack = {
-                    navController.navigate(DestinasiMaster.route)
+                    navController.popBackStack()
                 }
             )
         }
@@ -76,7 +78,7 @@ fun PengelolaHalaman(
             id?.let { id ->
                 HewanDetailView(
                     onBack = {
-                        navController.navigate(DestinasiHewan.route)
+                        navController.popBackStack()
                     },
                     onEditClick = {
                         navController.navigate("${DestinasiHewanUpdate.route}/$id")
@@ -90,7 +92,7 @@ fun PengelolaHalaman(
         composable(DestinasiHewanInsert.route){
             HewanInsertView(
                 onBack = {
-                    navController.navigate(DestinasiHewan.route)
+                    navController.popBackStack()
                 },
                 isDarkTheme = isDarkTheme,
                 onThemeChange = onThemeChange
@@ -109,7 +111,7 @@ fun PengelolaHalaman(
             id?.let { id ->
                 HewanUpdateView(
                     onBack = {
-                        navController.navigate(DestinasiHewan.route)
+                        navController.popBackStack()
                     },
                     isDarkTheme = isDarkTheme,
                     onThemeChange = onThemeChange
@@ -131,7 +133,7 @@ fun PengelolaHalaman(
                 isDarkTheme = isDarkTheme,
                 onThemeChange = onThemeChange,
                 onBack = {
-                    navController.navigate(DestinasiMaster.route)
+                    navController.popBackStack()
                 }
             )
         }
@@ -148,12 +150,15 @@ fun PengelolaHalaman(
             id?.let { id ->
                 KandangDetailView(
                     onBack = {
-                        navController.navigate(DestinasiKandang.route)
+                        navController.popBackStack()
                     },
                     isDarkTheme = isDarkTheme,
                     onThemeChange = onThemeChange,
                     onEditClick = {
                         navController.navigate("${DestinasiKandangUpdate.route}/$id")
+                    },
+                    onHewanClick = { it->
+                        navController.navigate("${DestinasiHewanDetail.route}/$it")
                     }
                 )
             }
@@ -163,7 +168,7 @@ fun PengelolaHalaman(
                 isDarkTheme = isDarkTheme,
                 onThemeChange = onThemeChange,
                 onBack = {
-                    navController.navigate(DestinasiKandang.route)
+                    navController.popBackStack()
                 }
             )
         }
@@ -179,7 +184,7 @@ fun PengelolaHalaman(
             id?.let { id ->
                 KandangUpdateView(
                     onBack = {
-                        navController.navigate(DestinasiKandang.route)
+                        navController.popBackStack()
                     },
                     isDarkTheme = isDarkTheme,
                     onThemeChange = onThemeChange,
@@ -200,7 +205,7 @@ fun PengelolaHalaman(
                 isDarkTheme = isDarkTheme,
                 onThemeChange = onThemeChange,
                 onBack = {
-                    navController.navigate(DestinasiMaster.route)
+                    navController.popBackStack()
                 }
             )
         }
@@ -216,7 +221,7 @@ fun PengelolaHalaman(
             id?.let { id ->
                 MonitoringDetailView(
                     onBack = {
-                        navController.navigate(DestinasiMonitoring.route)
+                        navController.popBackStack()
                     },
                     isDarkTheme = isDarkTheme,
                     onThemeChange = onThemeChange,
@@ -232,7 +237,7 @@ fun PengelolaHalaman(
                 isDarkTheme = isDarkTheme,
                 onThemeChange = onThemeChange,
                 onBack = {
-                    navController.navigate(DestinasiMonitoring.route)
+                    navController.popBackStack()
                 }
             )
         }
@@ -249,7 +254,7 @@ fun PengelolaHalaman(
             id?.let { id ->
                 MonitoringUpdateView(
                     onBack = {
-                        navController.navigate(DestinasiMonitoring.route)
+                        navController.popBackStack()
                     },
                     isDarkTheme = isDarkTheme,
                     onThemeChange = onThemeChange,
@@ -269,7 +274,7 @@ fun PengelolaHalaman(
                 isDarkTheme = isDarkTheme,
                 onThemeChange = onThemeChange,
                 onBack = {
-                    navController.navigate(DestinasiMaster.route)
+                    navController.popBackStack()
                 }
             )
         }
@@ -285,7 +290,7 @@ fun PengelolaHalaman(
             id?.let { id ->
                 PetugasDetailView(
                     onBack = {
-                        navController.navigate(DestinasiPetugas.route)
+                        navController.popBackStack()
                     },
                     isDarkTheme = isDarkTheme,
                     onThemeChange = onThemeChange,
@@ -307,7 +312,7 @@ fun PengelolaHalaman(
             id?.let { id ->
                 PetugasUpdateView(
                     onBack = {
-                        navController.navigate(DestinasiPetugas.route)
+                        navController.popBackStack()
                     },
                     isDarkTheme = isDarkTheme,
                     onThemeChange = onThemeChange,
@@ -317,7 +322,7 @@ fun PengelolaHalaman(
         composable(DestinasiPetugasInsert.route){
             PetugasInsertView(
                 onBack = {
-                    navController.navigate(DestinasiPetugas.route)
+                    navController.popBackStack()
                 },
                 isDarkTheme = isDarkTheme,
                 onThemeChange = onThemeChange,

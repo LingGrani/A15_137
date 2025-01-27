@@ -74,6 +74,9 @@ val surfaceContainerDarkContrast = Color(0xFF1B211D)
 val surfaceContainerHighDarkContrast = Color(0xFF262B27)
 val surfaceContainerHighestDarkContrast = Color(0xFF303632)
 
+val herbivora = Color(0xFF5DA83A)
+val karnivora = Color(0xFFD75632)
+val omnivora = Color(0xFF1596C5)
 
 
 

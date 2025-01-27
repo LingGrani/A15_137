@@ -1,12 +1,23 @@
 package com.example.projekakhirpam.ui.view.kandang
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,11 +28,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.projekakhirpam.R
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
 import com.example.projekakhirpam.ui.component.DeleteConfirmationDialog
+import com.example.projekakhirpam.ui.view.hewan.editDelete
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
 import com.example.projekakhirpam.ui.viewmodel.hewan.DetailHewanUiState
 import com.example.projekakhirpam.ui.viewmodel.kandang.DetailKandangUiState
@@ -35,7 +50,8 @@ fun KandangDetailView (
     onBack: () -> Unit,
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit,
-    onEditClick: (String) -> Unit
+    onEditClick: (String) -> Unit,
+    onHewanClick: (String) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -59,7 +75,8 @@ fun KandangDetailView (
                     (it as DetailKandangUiState.Success).kandangWithHewan.kandang.idKandang
                 })
                 onBack()
-            }
+            },
+            onHewanClick = onHewanClick
         )
     }
 }
@@ -71,7 +88,8 @@ private fun DetailStatus (
     modifier: Modifier = Modifier,
     onBack: () -> Unit = {},
     onEditClick: (String) -> Unit = {},
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    onHewanClick: (String) -> Unit = {}
 ){
     var deleteConfirmationRequired by rememberSaveable { mutableStateOf(false) }
     when (detailUiState) {
@@ -86,12 +104,12 @@ private fun DetailStatus (
                     DetailBody(
                         data = detailUiState.kandangWithHewan,
                         modifier = modifier,
+                        onHewanClick = onHewanClick
                     )
-                    Button(
-                        onClick = { deleteConfirmationRequired = true },
-                    ) {
-                        Text(text = "Delete")
-                    }
+                    editDelete(
+                        edit = { onEditClick(detailUiState.kandangWithHewan.kandang.idKandang.toString()) },
+                        delete = { deleteConfirmationRequired = true }
+                    )
                     if (deleteConfirmationRequired) {
                         DeleteConfirmationDialog(
                             onDeleteConfirm = {
@@ -102,11 +120,6 @@ private fun DetailStatus (
                             modifier = Modifier.padding(8.dp),
                             pesan = "Apakah Anda Ingin Menghapus Data?"
                         )
-                    }
-                    Button(
-                        onClick = { onEditClick(detailUiState.kandangWithHewan.kandang.idKandang.toString()) }
-                    ) {
-                        Text(text = "Edit")
                     }
                 }
             }
@@ -120,31 +133,83 @@ private fun DetailStatus (
 @Composable
 private fun DetailBody(
     modifier: Modifier,
-    data: KandangWithHewan
+    data: KandangWithHewan,
+    onHewanClick: (String) -> Unit = {}
 ) {
-    Row (
+    Column(
         modifier = modifier
-    ){
-        Column (
-        ){
-            Text("IDKandang")
-            Text(data.kandang.idKandang.toString())
-            Text("IDHewan")
-            Text(data.kandang.idHewan.toString())
-            Text("Kapasitas")
-            Text(data.kandang.kapasitas.toString())
-            Text("Lokasi")
-            Text(data.kandang.lokasi)
+            .padding(16.dp)
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
+            .padding(16.dp)
+    ) {
+
+        // Kandang Details
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("KANDANG INFO", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(4.dp))
+                InfoRow(label = "ID Kandang", value = data.kandang.idKandang.toString())
+                InfoRow(label = "ID Hewan", value = data.kandang.idHewan.toString())
+                InfoRow(label = "Kapasitas", value = data.kandang.kapasitas.toString())
+                InfoRow(label = "Lokasi", value = data.kandang.lokasi)
+            }
         }
-        Column {
-            Text("IDHewan")
-            Text(data.hewan?.idHewan.toString())
-            Text("Nama Hewan")
-            data.hewan?.let { Text(it.namaHewan) }
-            Text("Tipe Pakan")
-            data.hewan?.let { Text(it.tipePakan) }
-            Text("Populasi")
-            Text(data.hewan?.populasi.toString())
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Hewan Details
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+        ) {
+            Row (
+                modifier = Modifier.fillMaxWidth().clickable {
+                    onHewanClick(data.hewan?.idHewan.toString())
+                },
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                Column(modifier = Modifier.padding(16.dp).weight(9f)) {
+                    Text("HEWAN INFO", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    InfoRow(label = "ID Hewan", value = data.hewan?.idHewan?.toString() ?: "-")
+                    InfoRow(label = "Nama Hewan", value = data.hewan?.namaHewan ?: "-")
+                    InfoRow(label = "Tipe Pakan", value = data.hewan?.tipePakan ?: "-")
+                    InfoRow(label = "Populasi", value = data.hewan?.populasi?.toString() ?: "-")
+                }
+                Icon(
+                    painter = painterResource(R.drawable.arrow_right),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .weight(1f),
+                    tint = MaterialTheme.colorScheme.inverseSurface                )
+            }
         }
+    }
+}
+
+@Composable
+private fun InfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "$label:",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(2f)
+        )
     }
 }

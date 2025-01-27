@@ -61,7 +61,6 @@ fun PetugasInsertView(
             },
             modifier = Modifier
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
                 .fillMaxWidth()
         )
     }
@@ -104,13 +103,6 @@ private fun Insert(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        OutlinedTextField(
-            value = insertUiEvent.idPetugas,
-            onValueChange = {onValueChange(insertUiEvent.copy(idPetugas = it))},
-            label = { Text("ID") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-        )
         OutlinedTextField(
             value = insertUiEvent.namaPetugas,
             onValueChange = {onValueChange(insertUiEvent.copy(namaPetugas = it))},

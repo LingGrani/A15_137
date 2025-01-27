@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projekakhirpam.R
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
+import com.example.projekakhirpam.ui.component.footer
 import com.example.projekakhirpam.ui.view.hewan.OnError
 import com.example.projekakhirpam.ui.view.hewan.OnLoading
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
@@ -74,6 +76,21 @@ fun MonitoringHomeView(
                 onThemeChange = onThemeChange,
                 onBack = onBack
             )
+        },
+        floatingActionButton = {
+            IconButton(
+                onClick = onAddClick,
+                modifier = Modifier.padding(4.dp)
+                    .background(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(30))
+                    .size(64.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         }
     ){ innerPadding ->
         Column (
@@ -88,19 +105,6 @@ fun MonitoringHomeView(
                 ,
                 verticalAlignment = Alignment.CenterVertically
             ){
-                IconButton(
-                    onClick = onAddClick,
-                    modifier = Modifier.padding(4.dp)
-                        .background(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(100))
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
-                Spacer(Modifier.padding(8.dp))
                 OutlinedTextField(
                     value = searchText,
                     onValueChange = viewModel::onSearchTextChange,
@@ -187,6 +191,9 @@ private fun Layout (
                 }
             )
         }
+        item{
+            footer()
+        }
     }
 }
 
@@ -195,44 +202,64 @@ private fun HomeCard(
     data: Join,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
-){
+) {
     Card(
         modifier = modifier
-            .clickable { onClick() }
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Row {
-            Column {
-                Row {
-                    Text("Nama Hewan:  ")
-                    Text(data.hewan?.namaHewan.toString())
-                }
-                Row {
-                    Text("Lokasi monitoring:  ")
-                    Text(data.kandang?.lokasi.toString())
-                }
-                Row {
-                    Text("Nama Petugas:  ")
-                    Text(data.petugas?.namaPetugas.toString())
-                }
-                Row {
-                    Text("Tanggal:  ")
-                    Text(data.monitoring.tanggalMonitoring.toTanggalDisplay())
-                }
-                Row {
-                    Text("Status:  ")
-                    Text(data.monitoring.status)
-                }
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                InfoRow(label = "Nama Hewan", value = data.hewan?.namaHewan.orEmpty())
+                InfoRow(label = "Lokasi Monitoring", value = data.kandang?.lokasi.orEmpty())
+                InfoRow(label = "Nama Petugas", value = data.petugas?.namaPetugas.orEmpty())
+                InfoRow(label = "Tanggal", value = data.monitoring.tanggalMonitoring.toTanggalDisplay())
+                InfoRow(label = "Status", value = data.monitoring.status)
             }
+
             Icon(
                 painter = painterResource(R.drawable.arrow_right),
-                contentDescription = null
+                contentDescription = "Lihat Detail",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
             )
         }
-
     }
 }
 
-private fun String.toTanggalDisplay(): String {
+@Composable
+fun InfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "$label:",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(2f)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(3f)
+        )
+    }
+}
+
+
+fun String.toTanggalDisplay(): String {
     val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
     val outputFormat = SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale("id", "ID"))
     return try {
