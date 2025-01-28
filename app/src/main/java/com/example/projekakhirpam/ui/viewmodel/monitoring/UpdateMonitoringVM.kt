@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.projekakhirpam.model.Kandang
 import com.example.projekakhirpam.model.Monitoring
 import com.example.projekakhirpam.model.Petugas
 import com.example.projekakhirpam.repo.KebunRepository
@@ -23,26 +24,58 @@ class UpdateMonitoringVM(
     private val repo: KebunRepository
 ) : ViewModel() {
 
-    var uiState: UpdateMonitoringUiState by mutableStateOf(UpdateMonitoringUiState.Loading)
+    var uiEvent: UpdateMonitoringUiState by mutableStateOf(UpdateMonitoringUiState.Loading)
+        private set
+
+    var uiState: FormUpdateStateMonitoring by mutableStateOf(FormUpdateStateMonitoring.Idle)
         private set
 
     fun updateDataState(updateUiEvent: UpdateMonitoringUiEvent) {
-        if (uiState is UpdateMonitoringUiState.Success) {
-            val currentState = uiState as UpdateMonitoringUiState.Success
-            uiState = currentState.copy(updateMonitoringUiEvent = updateUiEvent)
+        if (uiEvent is UpdateMonitoringUiState.Success) {
+            val currentState = uiEvent as UpdateMonitoringUiState.Success
+            uiEvent = currentState.copy(updateMonitoringUiEvent = updateUiEvent)
         }
     }
 
     private val _id: String = checkNotNull(savedStateHandle[DestinasiMonitoringDetail.idArg])
+
+    fun validateFields(): Boolean {
+        val currentUiEvent = uiEvent as? UpdateMonitoringUiState.Success ?: return false
+
+        val hewanSakit = currentUiEvent.updateMonitoringUiEvent.hewanSakit.toIntOrNull() ?: 0
+        val hewanSehat = currentUiEvent.updateMonitoringUiEvent.hewanSehat.toIntOrNull() ?: 0
+        val totalHewan = hewanSakit + hewanSehat
+
+        val status = when {
+            totalHewan == 0 -> "Data Tidak Valid"
+            hewanSakit.toDouble() / totalHewan < 0.1 -> "Aman"
+            hewanSakit.toDouble() / totalHewan < 0.5 -> "Waspada"
+            else -> "Kritis"
+        }
+
+        val error = ErrorMonitoringFormState(
+            idKandang = if (currentUiEvent.updateMonitoringUiEvent.idKandang.isBlank()) "Id Kandang tidak boleh kosong" else null,
+            idPetugas = if (currentUiEvent.updateMonitoringUiEvent.idPetugas.isBlank()) "Id Petugas tidak boleh kosong" else null,
+            status = if (status == "Data Tidak Valid") "Status tidak valid" else null,
+            tanggal = if (currentUiEvent.updateMonitoringUiEvent.tanggalMonitoring.isBlank()) "Tanggal tidak boleh kosong" else null,
+        )
+
+        updateDataState(
+            currentUiEvent.updateMonitoringUiEvent.copy(status = status)
+        )
+
+        uiEvent = currentUiEvent.copy(error = error)
+        return error.isValid()
+    }
 
     init {
         getDataById()
     }
 
     fun getDataById() {
-        uiState = UpdateMonitoringUiState.Loading
+        uiEvent = UpdateMonitoringUiState.Loading
         viewModelScope.launch {
-            uiState = try {
+            uiEvent = try {
                 val monitoring = repo.getMonitoringById(_id.toInt())
                 val petugasList = repo.getPetugas()
                 val kandangList = repo.getKandang()
@@ -66,13 +99,18 @@ class UpdateMonitoringVM(
     }
 
     suspend fun updateData() {
-        val updateEvent = (uiState as UpdateMonitoringUiState.Success).updateMonitoringUiEvent
-        viewModelScope.launch {
-            try {
-                repo.updateMonitoring(_id.toInt(), updateEvent.todata())
-                Log.d("UpdateViewModel", "updateMhs: Success")
-            } catch (e: Exception) {
-                e.printStackTrace()
+        if (validateFields()){
+            uiState = FormUpdateStateMonitoring.Loading
+            val updateEvent = (uiEvent as UpdateMonitoringUiState.Success).updateMonitoringUiEvent
+            viewModelScope.launch {
+                try {
+                    repo.updateMonitoring(_id.toInt(), updateEvent.todata())
+                    Log.d("UpdateViewModel", "updateMhs: Success")
+                    uiState = FormUpdateStateMonitoring.Success("Berhasil")
+                } catch (e: Exception) {
+                    uiState = FormUpdateStateMonitoring.Error("Gagal")
+                    e.printStackTrace()
+                }
             }
         }
     }
@@ -83,9 +121,17 @@ sealed class UpdateMonitoringUiState {
     data class Success(
         val petugasList: List<Petugas>,
         val kandangHewanList: List<KandangWithHewan>,
-        val updateMonitoringUiEvent: UpdateMonitoringUiEvent = UpdateMonitoringUiEvent()
+        val updateMonitoringUiEvent: UpdateMonitoringUiEvent = UpdateMonitoringUiEvent(),
+        val error: ErrorMonitoringFormState = ErrorMonitoringFormState()
     ) : UpdateMonitoringUiState()
     object Error : UpdateMonitoringUiState()
+}
+
+sealed class FormUpdateStateMonitoring {
+    object Idle : FormUpdateStateMonitoring()
+    object Loading : FormUpdateStateMonitoring()
+    data class Success(val message: String) : FormUpdateStateMonitoring()
+    data class Error(val message: String) : FormUpdateStateMonitoring()
 }
 
 data class UpdateMonitoringUiEvent(
@@ -104,8 +150,8 @@ fun UpdateMonitoringUiEvent.todata(): Monitoring = Monitoring(
     idPetugas = idPetugas.toInt(),
     status = status,
     tanggalMonitoring = tanggalMonitoring,
-    hewanSakit = hewanSakit.toInt(),
-    hewanSehat = hewanSehat.toInt()
+    hewanSakit = hewanSakit.toIntOrNull() ?: 0,
+    hewanSehat = hewanSehat.toIntOrNull() ?: 0
 )
 
 fun Monitoring.toUpdateUiEvent(): UpdateMonitoringUiEvent = UpdateMonitoringUiEvent(

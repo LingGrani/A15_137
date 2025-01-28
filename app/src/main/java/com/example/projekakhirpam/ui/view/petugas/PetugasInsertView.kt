@@ -1,14 +1,17 @@
 package com.example.projekakhirpam.ui.view.petugas
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -18,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -25,10 +29,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
 import com.example.projekakhirpam.ui.component.SelectedTextField
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
+import com.example.projekakhirpam.ui.viewmodel.petugas.ErrorPetugasFormState
+import com.example.projekakhirpam.ui.viewmodel.petugas.FormStatePetugas
 import com.example.projekakhirpam.ui.viewmodel.petugas.InsertPetugasUiEvent
 import com.example.projekakhirpam.ui.viewmodel.petugas.InsertPetugasUiState
 import com.example.projekakhirpam.ui.viewmodel.petugas.InsertPetugasVM
 import kotlinx.coroutines.launch
+import okhttp3.internal.format
 
 @Composable
 fun PetugasInsertView(
@@ -38,6 +45,8 @@ fun PetugasInsertView(
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit
 ){
+    val uiState = viewModel.uiState
+    val uiEvent = viewModel.uiEvent
     val coroutineScope = rememberCoroutineScope()
     Scaffold (
         topBar = {
@@ -51,17 +60,20 @@ fun PetugasInsertView(
         }
     ){ innerPadding ->
         EntryBody(
-            insertUiState = viewModel.uiState,
-            onMhsValueChange = viewModel::updateInsertMhsState,
+            insertUiState = uiEvent,
+            onMhsValueChange = viewModel::updateInsertDataState,
             onSaveClick = {
-                coroutineScope.launch {
-                    viewModel.insertHewan()
-                    onBack()
+                if (viewModel.validateFields()){
+                    coroutineScope.launch {
+                        viewModel.insertPetugas()
+                        onBack()
+                    }
                 }
             },
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            form = uiState
         )
     }
 }
@@ -71,7 +83,8 @@ private fun EntryBody(
     insertUiState: InsertPetugasUiState,
     onMhsValueChange: (InsertPetugasUiEvent) -> Unit,
     onSaveClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    form: FormStatePetugas
 ) {
     Column (
         verticalArrangement = Arrangement.spacedBy(18.dp),
@@ -80,12 +93,23 @@ private fun EntryBody(
         Insert(
             insertUiEvent = insertUiState.insertPetugasUiEvent,
             onValueChange = onMhsValueChange,
+            errorState = insertUiState.error
         )
         Button (
             onClick = onSaveClick,
             shape = MaterialTheme.shapes.small,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = form !is FormStatePetugas.Loading
         ) {
+            if (form is FormStatePetugas.Loading) {
+                CircularProgressIndicator(
+                    color = Color.White,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .padding(end = 8.dp)
+                )
+                Text("Loading")
+            }
             Text("Simpan")
         }
     }
@@ -97,6 +121,7 @@ private fun Insert(
     insertUiEvent: InsertPetugasUiEvent = InsertPetugasUiEvent(),
     onValueChange: (InsertPetugasUiEvent) -> Unit = {},
     modifier: Modifier = Modifier,
+    errorState: ErrorPetugasFormState = ErrorPetugasFormState()
 ) {
     val list = listOf("Keeper", "Dokter Hewan", "Kurator")
     Column (
@@ -107,9 +132,22 @@ private fun Insert(
             value = insertUiEvent.namaPetugas,
             onValueChange = {onValueChange(insertUiEvent.copy(namaPetugas = it))},
             label = { Text("Nama") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isError = errorState.namaPetugas != null,
+            supportingText = {
+                Text(
+                    text = errorState.namaPetugas ?: "",
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         )
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth()
+                .border(
+                    width = 2.dp,
+                    color = if (errorState.jabatan != null) MaterialTheme.colorScheme.error else Color.Transparent,
+            )
+        ) {
             list.forEach { selected ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -125,5 +163,9 @@ private fun Insert(
                 }
             }
         }
+        Text(
+            text = errorState.jabatan ?: "",
+            color = MaterialTheme.colorScheme.error
+        )
     }
 }

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -60,6 +61,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.motionEventSpy
 import androidx.compose.ui.input.pointer.pointerInput
@@ -83,9 +85,12 @@ import com.example.projekakhirpam.ui.component.TimeDatePickerSQL
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
 import com.example.projekakhirpam.ui.viewmodel.hewan.HomeHewanUiState
 import com.example.projekakhirpam.ui.viewmodel.hewan.HomeHewanVM
+import com.example.projekakhirpam.ui.viewmodel.kandang.FormStateKandang
 import com.example.projekakhirpam.ui.viewmodel.kandang.HomeKandangUiState
 import com.example.projekakhirpam.ui.viewmodel.kandang.HomeKandangVM
 import com.example.projekakhirpam.ui.viewmodel.kandang.KandangWithHewan
+import com.example.projekakhirpam.ui.viewmodel.monitoring.ErrorMonitoringFormState
+import com.example.projekakhirpam.ui.viewmodel.monitoring.FormStateMonitoring
 import com.example.projekakhirpam.ui.viewmodel.monitoring.InsertMonitoringUiEvent
 import com.example.projekakhirpam.ui.viewmodel.monitoring.InsertMonitoringUiState
 import com.example.projekakhirpam.ui.viewmodel.monitoring.InsertMonitoringVM
@@ -102,6 +107,8 @@ fun MonitoringInsertView(
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit
 ){
+    val uiState = viewModel.uiState
+    val uiEvent = viewModel.uiEvent
     val coroutineScope = rememberCoroutineScope()
     Scaffold (
         topBar = {
@@ -115,20 +122,22 @@ fun MonitoringInsertView(
         }
     ){ padding ->
         EntryBody(
-            insertUiState = viewModel.uiState,
+            insertUiState = uiEvent,
             onValueChange = viewModel::updateInsertDataState,
             onSaveClick = {
-                coroutineScope.launch {
-                    viewModel.insertMonitoring()
-                    onBack()
+                if (viewModel.validateFields()){
+                    coroutineScope.launch {
+                        viewModel.insertMonitoring()
+                        onBack()
+                    }
                 }
             },
             modifier = Modifier
                 .padding(padding)
                 .fillMaxWidth(),
-            retryAction = viewModel::getData
+            retryAction = viewModel::getData,
+            form = uiState
         )
-
     }
 }
 
@@ -138,16 +147,20 @@ private fun EntryBody(
     onValueChange: (InsertMonitoringUiEvent) -> Unit,
     onSaveClick: () -> Unit,
     modifier: Modifier,
-    retryAction: () -> Unit
+    retryAction: () -> Unit,
+    form: FormStateMonitoring
 ){
     var nilaiValid by remember { mutableStateOf(false) }
     when(insertUiState){
         is InsertMonitoringUiState.Loading -> OnLoading(modifier = modifier.fillMaxSize())
         is InsertMonitoringUiState.Error -> OnError(retryAction, Modifier.fillMaxSize())
         is InsertMonitoringUiState.Success -> {
-            Column (
+            Column(
                 verticalArrangement = Arrangement.spacedBy(18.dp),
-                modifier = modifier.padding(12.dp)
+                modifier = modifier
+                    .padding(12.dp)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()) // Tambahkan scroll
             ){
                 val list1: List<KandangWithHewan> = insertUiState.kandangHewanList
                 val list2: List<Petugas> = insertUiState.petugasList
@@ -156,7 +169,8 @@ private fun EntryBody(
                     onValueChange = onValueChange,
                     data1 = list1,
                     data2 = list2,
-                    valid = { data -> nilaiValid = data }
+                    errorState = insertUiState.error,
+                    valid = { data -> nilaiValid = data },
                 )
                 Button (
                     onClick = onSaveClick,
@@ -164,6 +178,15 @@ private fun EntryBody(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = nilaiValid
                 ) {
+                    if (form is FormStateMonitoring.Loading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .padding(end = 8.dp)
+                        )
+                        Text("Loading")
+                    }
                     Text("Simpan")
                 }
             }
@@ -177,14 +200,13 @@ private fun Insert(
     onValueChange: (InsertMonitoringUiEvent) -> Unit = {},
     data1: List<KandangWithHewan>,
     data2: List<Petugas>,
+    errorState: ErrorMonitoringFormState = ErrorMonitoringFormState(),
     valid: (Boolean) -> Unit
 ) {
     var selectedHewanKandang by remember { mutableStateOf("") }
     var selectedNamaPetugas by remember { mutableStateOf("") }
     var selectedJabatanPetugas by remember { mutableStateOf("") }
     var selectedPopulasi by remember { mutableIntStateOf(0) }
-    var sakit by remember { mutableIntStateOf(0) }
-    var sehat by remember { mutableIntStateOf(0) }
     onValueChange(insertUiEvent.copy(tanggal = LocalDateTime.now().toString()))
 
     Column(
@@ -205,6 +227,13 @@ private fun Insert(
                     selectedPopulasi = populasi
                 }
             },
+            isError = errorState.idKandang != null,
+            supportingText = {
+                Text(
+                    text = errorState.idKandang ?: "",
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         )
         Text(
             "Populasi: $selectedPopulasi",
@@ -224,6 +253,13 @@ private fun Insert(
                     selectedJabatanPetugas = data2.find { it.namaPetugas == selectedName }?.jabatan ?: ""
                 }
             },
+            isError = errorState.idPetugas != null,
+            supportingText = {
+                Text(
+                    text = errorState.idPetugas ?: "",
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         )
         Text(
             selectedJabatanPetugas,
@@ -237,33 +273,38 @@ private fun Insert(
             }
         )
 
-        // Input kondisi hewan sehat dan sakit
         Row {
             OutlinedTextField(
                 value = insertUiEvent.hewanSehat,
-                onValueChange = { nilai ->
-                    if (nilai.all { it.isDigit() }) {
-                        onValueChange(insertUiEvent.copy(hewanSehat = if (nilai.isEmpty()) "0" else nilai))
-                        sehat = if (nilai.isEmpty()) 0 else nilai.toInt()
-                        valid(false)
-                    }
-                },
+                onValueChange = {
+                    onValueChange(insertUiEvent.copy(hewanSehat = it))
+                    valid(false)},
                 label = { Text("Kondisi Sehat") },
                 modifier = Modifier.weight(1f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                isError = errorState.hewanSehat != null,
+                supportingText = {
+                    Text(
+                        text = errorState.hewanSehat ?: "",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             )
             OutlinedTextField(
                 value = insertUiEvent.hewanSakit,
-                onValueChange = { nilai ->
-                    if (nilai.all { it.isDigit() }) {
-                        sakit = if (nilai.isEmpty()) 0 else nilai.toInt()
-                        onValueChange(insertUiEvent.copy(hewanSakit = if (nilai.isEmpty()) "0" else nilai))
-                        valid(false)
-                    }
-                },
+                onValueChange = {
+                    onValueChange(insertUiEvent.copy(hewanSakit = it))
+                    valid(false)},
                 label = { Text("Kondisi Sakit") },
                 modifier = Modifier.weight(1f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                isError = errorState.hewanSakit != null,
+                supportingText = {
+                    Text(
+                        text = errorState.hewanSakit ?: "",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             )
         }
         Row (
@@ -276,10 +317,10 @@ private fun Insert(
                 onClick = {
                     updateStatus(
                         populasi = selectedPopulasi,
-                        sakit = sakit,
-                        sehat = sehat,
-                        update = {
-                            value -> onValueChange(insertUiEvent.copy(status = value))
+                        sakit = insertUiEvent.hewanSakit.toIntOrNull() ?: 0,
+                        sehat = insertUiEvent.hewanSehat.toIntOrNull() ?: 0,
+                        update = { value ->
+                            onValueChange(insertUiEvent.copy(status = value))
                             valid(value != "Data Tidak Valid")
                         }
                     )
@@ -315,5 +356,3 @@ fun updateStatus(
         update("Data Tidak Valid")
     }
 }
-
-

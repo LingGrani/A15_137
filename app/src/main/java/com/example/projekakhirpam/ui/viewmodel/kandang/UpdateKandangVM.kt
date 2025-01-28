@@ -18,14 +18,33 @@ class UpdateKandangVM(
     private val repo: KebunRepository
 ) : ViewModel() {
 
-    var uiState: UpdateKandangUiState by mutableStateOf(UpdateKandangUiState.Loading)
+    var uiEvent: UpdateKandangUiState by mutableStateOf(UpdateKandangUiState.Loading)
         private set
 
+    var uiState: FormStateKandang by mutableStateOf(FormStateKandang.Idle)
+        private set
+
+
     fun updateDataState(updateUiEvent: UpdateKandangUiEvent) {
-        if (uiState is UpdateKandangUiState.Success) {
-            val currentState = uiState as UpdateKandangUiState.Success
-            uiState = currentState.copy(updateKandangUiEvent = updateUiEvent)
+        if (uiEvent is UpdateKandangUiState.Success) {
+            val currentState = uiEvent as UpdateKandangUiState.Success
+            uiEvent = currentState.copy(updateKandangUiEvent = updateUiEvent)
         }
+    }
+
+    fun validateFields(): Boolean {
+        val currentUiEvent = uiEvent as? UpdateKandangUiState.Success ?: return false
+        val error = ErrorKandangFormState(
+            idHewan = if (currentUiEvent.updateKandangUiEvent.idHewan.isBlank()) "Id Hewan tidak boleh kosong" else null,
+            kapasitas = when {
+                currentUiEvent.updateKandangUiEvent.kapasitas.isBlank() -> "Kapasitas tidak boleh kosong"
+                currentUiEvent.updateKandangUiEvent.kapasitas.toIntOrNull() == null -> "Kapasitas harus berupa angka"
+                else -> null
+            },
+            lokasi = if (currentUiEvent.updateKandangUiEvent.lokasi.isBlank()) "Lokasi tidak boleh kosong" else null
+        )
+        uiEvent = currentUiEvent.copy(error = error)
+        return error.isValid()
     }
 
     private val _id: String = checkNotNull(savedStateHandle[DestinasiKandangDetail.idArg])
@@ -36,10 +55,10 @@ class UpdateKandangVM(
 
     fun getDataById() {
         viewModelScope.launch {
-            uiState = UpdateKandangUiState.Loading
+            uiEvent = UpdateKandangUiState.Loading
             try {
                 val kandang = repo.getKandangById(_id.toInt())
-                uiState = UpdateKandangUiState.Success(
+                uiEvent = UpdateKandangUiState.Success(
                     hewanList = repo.getHewan(),
                     updateKandangUiEvent = kandang.toUpdateUiEvent()
                 )
@@ -50,13 +69,17 @@ class UpdateKandangVM(
     }
 
     suspend fun updateData() {
-        val updateEvent = (uiState as UpdateKandangUiState.Success).updateKandangUiEvent
-        viewModelScope.launch {
-            try {
-                Log.d("Hasil", updateEvent.toString())
-                repo.updateKandang(_id.toInt(), updateEvent.todata())
-            } catch (e: Exception) {
-                e.printStackTrace()
+        if (validateFields()){
+            uiState = FormStateKandang.Loading
+            val updateEvent = (uiEvent as UpdateKandangUiState.Success).updateKandangUiEvent
+            viewModelScope.launch {
+                try {
+                    Log.d("Hasil", updateEvent.toString())
+                    repo.updateKandang(_id.toInt(), updateEvent.todata())
+                    uiState = FormStateKandang.Success("Berhasil")
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
     }
@@ -66,11 +89,20 @@ sealed class UpdateKandangUiState {
     object Loading : UpdateKandangUiState()
     data class Success(
         val hewanList: List<Hewan>,
-        val updateKandangUiEvent: UpdateKandangUiEvent = UpdateKandangUiEvent()
+        val updateKandangUiEvent: UpdateKandangUiEvent = UpdateKandangUiEvent(),
+        val error: ErrorKandangFormState = ErrorKandangFormState()
     ) : UpdateKandangUiState()
     object Error : UpdateKandangUiState()
 }
 
+sealed class FormUpdateStateKandang {
+    object Idle : FormUpdateStateKandang()
+    object Loading : FormUpdateStateKandang()
+    data class Success(
+        val message: String,
+    ) : FormUpdateStateKandang()
+    data class Error(val message: String) : FormUpdateStateKandang()
+}
 
 data class UpdateKandangUiEvent(
     val idKandang: String = "",

@@ -4,26 +4,35 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
 import com.example.projekakhirpam.ui.component.SelectedTextField
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
+import com.example.projekakhirpam.ui.viewmodel.hewan.ErrorHewanFormState
+import com.example.projekakhirpam.ui.viewmodel.hewan.FormStateHewan
 import com.example.projekakhirpam.ui.viewmodel.hewan.InsertHewanUiEvent
 import com.example.projekakhirpam.ui.viewmodel.hewan.InsertHewanUiState
 import com.example.projekakhirpam.ui.viewmodel.hewan.InsertHewanVM
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,9 +41,10 @@ fun HewanInsertView(
     onBack: () -> Unit,
     viewModel: InsertHewanVM = viewModel(factory = PenyediaViewModel.Factory),
     isDarkTheme: Boolean,
-    onThemeChange: (Boolean) -> Unit
+    onThemeChange: (Boolean) -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope()
+    val uiState = viewModel.uiState
+    val uiEvent = viewModel.uiEvent
     Scaffold (
         topBar = {
             CustomTopAppBar(
@@ -47,17 +57,18 @@ fun HewanInsertView(
         }
     ){ innerPadding ->
         EntryBody(
-            insertUiState = viewModel.uiState,
-            onMhsValueChange = viewModel::updateInsertMhsState,
+            insertUiState = uiEvent,
+            onMhsValueChange = viewModel::updateInsertDataState,
             onSaveClick = {
-                coroutineScope.launch {
+                if (viewModel.validateFields()) {
                     viewModel.insertHewan()
                     onBack()
                 }
             },
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            form = uiState
         )
     }
 }
@@ -68,7 +79,8 @@ private fun EntryBody(
     insertUiState: InsertHewanUiState,
     onMhsValueChange: (InsertHewanUiEvent) -> Unit,
     onSaveClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    form: FormStateHewan
 ) {
     Column (
         verticalArrangement = Arrangement.spacedBy(18.dp),
@@ -77,13 +89,25 @@ private fun EntryBody(
         InsertHewan(
             insertUiEvent = insertUiState.insertHewanUiEvent,
             onValueChange = onMhsValueChange,
+            errorState = insertUiState.error
         )
         Button (
             onClick = onSaveClick,
             shape = MaterialTheme.shapes.small,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = form !is FormStateHewan.Loading
         ) {
-            Text("Simpan")
+            if (form is FormStateHewan.Loading) {
+                CircularProgressIndicator(
+                    color = Color.White,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .padding(end = 8.dp)
+                )
+                Text("Loading")
+            } else {
+                Text("Simpan")
+            }
         }
     }
 }
@@ -91,6 +115,7 @@ private fun EntryBody(
 @Composable
 fun InsertHewan(
     insertUiEvent: InsertHewanUiEvent,
+    errorState: ErrorHewanFormState = ErrorHewanFormState(),
     modifier: Modifier = Modifier,
     onValueChange: (InsertHewanUiEvent) -> Unit = {},
 ) {
@@ -103,6 +128,13 @@ fun InsertHewan(
             onValueChange = {onValueChange(insertUiEvent.copy(namaHewan = it))},
             label = { Text("Nama Hewan") },
             modifier = Modifier.fillMaxWidth(),
+            isError = errorState.namaHewan != null,
+            supportingText = {
+                Text (
+                    text = errorState.namaHewan ?: "",
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         )
         SelectedTextField(
             selectedValue = insertUiEvent.tipePakan,
@@ -110,7 +142,13 @@ fun InsertHewan(
             label = "Pakan",
             onValueChangedEvent = {onValueChange(insertUiEvent.copy(tipePakan = it))},
             modifier = Modifier.fillMaxWidth(),
-
+            isError = errorState.tipePakan != null,
+            supportingText = {
+                Text(
+                    text = errorState.tipePakan ?: "",
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         )
         OutlinedTextField(
             value = insertUiEvent.populasi,
@@ -118,13 +156,26 @@ fun InsertHewan(
             label = { Text("Populasi") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-
+            isError = errorState.populasi != null,
+            supportingText = {
+                Text(
+                    text = errorState.populasi ?: "",
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         )
         OutlinedTextField(
             value = insertUiEvent.zonaWilayah,
             onValueChange = {onValueChange(insertUiEvent.copy(zonaWilayah = it))},
             label = { Text("Zona Wilayah") },
             modifier = Modifier.fillMaxWidth(),
+            isError = errorState.zonaWilayah != null,
+            supportingText = {
+                Text(
+                    text = errorState.zonaWilayah ?: "",
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         )
     }
 }

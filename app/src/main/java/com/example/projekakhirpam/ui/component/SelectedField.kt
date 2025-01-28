@@ -22,7 +22,9 @@ fun SelectedTextField(
     options: List<String>,
     label: String,
     onValueChangedEvent: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isError: Boolean = false,
+    supportingText: @Composable (() -> Unit)? = null
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -43,7 +45,9 @@ fun SelectedTextField(
             },
             colors = OutlinedTextFieldDefaults.colors(),
             modifier = Modifier.menuAnchor().fillMaxWidth(),
-            enabled = options.isNotEmpty() // Matikan input jika daftar kosong
+            enabled = options.isNotEmpty(), // Matikan input jika daftar kosong
+            isError = isError,
+            supportingText = supportingText
         )
 
         if (options.isNotEmpty()) {

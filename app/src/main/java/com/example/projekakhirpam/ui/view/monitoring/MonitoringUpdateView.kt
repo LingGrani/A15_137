@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -23,6 +25,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -37,6 +40,9 @@ import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
 import com.example.projekakhirpam.ui.viewmodel.kandang.HomeKandangUiState
 import com.example.projekakhirpam.ui.viewmodel.kandang.HomeKandangVM
 import com.example.projekakhirpam.ui.viewmodel.kandang.KandangWithHewan
+import com.example.projekakhirpam.ui.viewmodel.monitoring.ErrorMonitoringFormState
+import com.example.projekakhirpam.ui.viewmodel.monitoring.FormStateMonitoring
+import com.example.projekakhirpam.ui.viewmodel.monitoring.FormUpdateStateMonitoring
 import com.example.projekakhirpam.ui.viewmodel.monitoring.UpdateMonitoringUiEvent
 import com.example.projekakhirpam.ui.viewmodel.monitoring.UpdateMonitoringUiState
 import com.example.projekakhirpam.ui.viewmodel.monitoring.InsertMonitoringVM
@@ -53,6 +59,9 @@ fun MonitoringUpdateView(
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit
 ){
+
+    val uiState = viewModel.uiState
+    val uiEvent = viewModel.uiEvent
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold (
@@ -67,20 +76,22 @@ fun MonitoringUpdateView(
         }
     ){ padding ->
         UpdateBody(
-            uiState = viewModel.uiState,
+            uiState = uiEvent,
             onValueChange = viewModel::updateDataState,
             onSaveClick = {
-                coroutineScope.launch {
-                    viewModel.updateData()
-                    onBack()
+                if (viewModel.validateFields()) {
+                    coroutineScope.launch {
+                        viewModel.updateData()
+                        onBack()
+                    }
                 }
             },
             modifier = Modifier
                 .padding(padding)
                 .fillMaxWidth(),
-            retryAction = viewModel::getDataById
+            retryAction = viewModel::getDataById,
+            form = uiState
         )
-
     }
 }
 
@@ -91,6 +102,7 @@ private fun UpdateBody(
     onSaveClick: () -> Unit,
     modifier: Modifier,
     retryAction: () -> Unit,
+    form: FormUpdateStateMonitoring
 ){
     var nilaiValid by remember { mutableStateOf(false) }
     when(uiState){
@@ -108,6 +120,7 @@ private fun UpdateBody(
                     onValueChange = onValueChange,
                     data1 = kandangHewan,
                     data2 = petugas,
+                    errorState = uiState.error,
                     valid = { data -> nilaiValid = data }
                 )
                 Button (
@@ -116,6 +129,15 @@ private fun UpdateBody(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = nilaiValid
                 ) {
+                    if (form is FormUpdateStateMonitoring.Loading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .padding(end = 8.dp)
+                        )
+                        Text("Loading")
+                    }
                     Text("Simpan")
                 }
             }
@@ -128,7 +150,8 @@ private fun Update(
     onValueChange: (UpdateMonitoringUiEvent) -> Unit = {},
     data1: List<KandangWithHewan>,
     data2: List<Petugas>,
-    valid: (Boolean) -> Unit
+    valid: (Boolean) -> Unit,
+    errorState: ErrorMonitoringFormState = ErrorMonitoringFormState(),
 ) {
     var selectedHewanKandang by remember { mutableStateOf("") }
     var selectedNamaPetugas by remember { mutableStateOf("") }
@@ -159,6 +182,13 @@ private fun Update(
                     selectedPopulasi = populasi
                 }
             },
+            isError = errorState.idKandang != null,
+            supportingText = {
+                Text(
+                    text = errorState.idKandang ?: "",
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         )
         Text(
             "Populasi: $selectedPopulasi",
@@ -178,6 +208,13 @@ private fun Update(
                     selectedJabatanPetugas = data2.find { it.namaPetugas == selectedName }?.jabatan ?: ""
                 }
             },
+            isError = errorState.idPetugas != null,
+            supportingText = {
+                Text(
+                    text = errorState.idPetugas ?: "",
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         )
         Text(
             selectedJabatanPetugas,
@@ -195,29 +232,34 @@ private fun Update(
         Row {
             OutlinedTextField(
                 value = insertUiEvent.hewanSehat,
-                onValueChange = { nilai ->
-                    if (nilai.all { it.isDigit() }) {
-                        onValueChange(insertUiEvent.copy(hewanSehat = if (nilai.isEmpty()) "0" else nilai))
-                        sehat = if (nilai.isEmpty()) 0 else nilai.toInt()
-                        valid(false)
-                    }
-                },
+                onValueChange = {
+                    onValueChange(insertUiEvent.copy(hewanSehat = it))
+                    valid(false)},
                 label = { Text("Kondisi Sehat") },
                 modifier = Modifier.weight(1f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                isError = errorState.hewanSehat != null,
+                supportingText = {
+                    Text(
+                        text = errorState.hewanSehat ?: "",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             )
             OutlinedTextField(
                 value = insertUiEvent.hewanSakit,
-                onValueChange = { nilai ->
-                    if (nilai.all { it.isDigit() }) {
-                        sakit = if (nilai.isEmpty()) 0 else nilai.toInt()
-                        onValueChange(insertUiEvent.copy(hewanSakit = if (nilai.isEmpty()) "0" else nilai))
-                        valid(false)
-                    }
-                },
+                onValueChange = {
+                    onValueChange(insertUiEvent.copy(hewanSakit = it))
+                    valid(false)},
                 label = { Text("Kondisi Sakit") },
                 modifier = Modifier.weight(1f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                supportingText = {
+                    Text(
+                        text = errorState.hewanSakit ?: "",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             )
         }
         Row (
@@ -230,10 +272,10 @@ private fun Update(
                 onClick = {
                     updateStatus(
                         populasi = selectedPopulasi,
-                        sakit = sakit,
-                        sehat = sehat,
-                        update = {
-                                value -> onValueChange(insertUiEvent.copy(status = value))
+                        sakit = insertUiEvent.hewanSakit.toIntOrNull() ?: 0,
+                        sehat = insertUiEvent.hewanSehat.toIntOrNull() ?: 0,
+                        update = { value ->
+                            onValueChange(insertUiEvent.copy(status = value))
                             valid(value != "Data Tidak Valid")
                         }
                     )
