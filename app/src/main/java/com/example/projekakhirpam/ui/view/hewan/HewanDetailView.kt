@@ -32,6 +32,8 @@ import com.example.projekakhirpam.R
 import com.example.projekakhirpam.model.Hewan
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
 import com.example.projekakhirpam.ui.component.DeleteConfirmationDialog
+import com.example.projekakhirpam.ui.component.OnError
+import com.example.projekakhirpam.ui.component.OnLoading
 import com.example.projekakhirpam.ui.theme.herbivora
 import com.example.projekakhirpam.ui.theme.karnivora
 import com.example.projekakhirpam.ui.theme.omnivora

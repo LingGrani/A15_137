@@ -31,6 +31,8 @@ import com.example.projekakhirpam.R
 import com.example.projekakhirpam.model.Petugas
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
 import com.example.projekakhirpam.ui.component.DeleteConfirmationDialog
+import com.example.projekakhirpam.ui.component.OnError
+import com.example.projekakhirpam.ui.component.OnLoading
 import com.example.projekakhirpam.ui.view.hewan.editDelete
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
 import com.example.projekakhirpam.ui.viewmodel.petugas.DetailPetugasUiState
@@ -82,7 +84,7 @@ private fun DetailStatus (
 ){
     var deleteConfirmationRequired by rememberSaveable { mutableStateOf(false) }
     when (detailUiState) {
-        is DetailPetugasUiState.Loading -> com.example.projekakhirpam.ui.view.hewan.OnLoading(modifier = modifier.fillMaxSize())
+        is DetailPetugasUiState.Loading -> OnLoading(modifier = modifier.fillMaxSize())
         is DetailPetugasUiState.Success ->
             if (detailUiState.petugas.idPetugas == 0) {
                 return Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -111,7 +113,7 @@ private fun DetailStatus (
                     }
                 }
             }
-        is DetailPetugasUiState.Error -> com.example.projekakhirpam.ui.view.hewan.OnError(
+        is DetailPetugasUiState.Error -> OnError(
             retryAction,
             modifier = modifier.fillMaxWidth()
         )

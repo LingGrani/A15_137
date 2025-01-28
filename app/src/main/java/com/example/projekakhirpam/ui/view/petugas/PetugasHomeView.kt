@@ -43,10 +43,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projekakhirpam.R
 import com.example.projekakhirpam.model.Petugas
+import com.example.projekakhirpam.ui.component.BottomNavigationBar
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
+import com.example.projekakhirpam.ui.component.OnError
+import com.example.projekakhirpam.ui.component.OnLoading
 import com.example.projekakhirpam.ui.component.footer
-import com.example.projekakhirpam.ui.view.hewan.OnError
-import com.example.projekakhirpam.ui.view.hewan.OnLoading
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
 import com.example.projekakhirpam.ui.viewmodel.petugas.HomePetugasUiState
 import com.example.projekakhirpam.ui.viewmodel.petugas.HomePetugasVM
@@ -58,7 +59,11 @@ fun PetugasHomeView(
     onAddClick: () -> Unit,
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    navigateHewan: () -> Unit,
+    navigateKandang: () -> Unit,
+    navigateMonitoring: () -> Unit,
+    navigatePetugas: () -> Unit,
 ){
     val searchText by viewModel.searchText.collectAsState()
     val datas by viewModel.datas.collectAsState()
@@ -72,6 +77,15 @@ fun PetugasHomeView(
                 isDarkTheme = isDarkTheme,
                 onThemeChange = onThemeChange,
                 onBack = onBack
+            )
+        },
+        bottomBar = {
+            BottomNavigationBar(
+                selectedTab = 3,
+                navigateHewan = navigateHewan,
+                navigateKandang = navigateKandang,
+                navigateMonitoring = navigateMonitoring,
+                navigatePetugas = navigatePetugas
             )
         },
         floatingActionButton = {

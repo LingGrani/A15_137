@@ -6,37 +6,81 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.projekakhirpam.model.Hewan
 import com.example.projekakhirpam.model.Monitoring
+import com.example.projekakhirpam.model.Petugas
 import com.example.projekakhirpam.repo.KebunRepository
+import com.example.projekakhirpam.ui.viewmodel.kandang.InsertKandangUiEvent
+import com.example.projekakhirpam.ui.viewmodel.kandang.InsertKandangUiState
+import com.example.projekakhirpam.ui.viewmodel.kandang.KandangWithHewan
+import com.example.projekakhirpam.ui.viewmodel.kandang.toData
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
+import retrofit2.HttpException
+import java.io.IOException
 
 class InsertMonitoringVM(private val repository: KebunRepository) : ViewModel() {
-    var uiState by mutableStateOf(InsertMonitoringUiState())
+    var uiState: InsertMonitoringUiState by mutableStateOf(InsertMonitoringUiState.Loading)
         private set
 
     fun updateInsertDataState(insertUiEvent: InsertMonitoringUiEvent) {
-        uiState = InsertMonitoringUiState(insertMonitoringUiEvent = insertUiEvent)
+        if (uiState is InsertMonitoringUiState.Success) {
+            val currentState = uiState as InsertMonitoringUiState.Success
+            uiState = currentState.copy(insertMonitoringUiEvent = insertUiEvent)
+        }
     }
 
-    suspend fun insertHewan() {
+    init {
+        getData()
+    }
+
+    fun getData() {
+
         viewModelScope.launch {
-            try {
-                repository.insertMonitoring(uiState.insertMonitoringUiEvent.toData())
-                Log.d("Hasil", uiState.insertMonitoringUiEvent.toString())
-                Log.d("Hasil", "Data inserted successfully")
-            } catch (e:Exception){
-                e.printStackTrace()
-                Log.d("Hasil", uiState.insertMonitoringUiEvent.toString())
-                Log.d("Hasil", "Data failed to insert")
+            uiState = InsertMonitoringUiState.Loading
+            uiState = try {
+                val petugasList = repository.getPetugas()
+                val kandangList = repository.getKandang()
+                val hewanList = repository.getHewan()
+
+                val combinedList = kandangList.map { kandang ->
+                    val hewan = hewanList.find { it.idHewan == kandang.idHewan }
+                    KandangWithHewan(kandang, hewan)
+                }
+                InsertMonitoringUiState.Success(
+                    petugasList = petugasList,
+                    kandangHewanList = combinedList
+                )
+            } catch (e: IOException) {
+                InsertMonitoringUiState.Error
+            } catch (e: HttpException) {
+                InsertMonitoringUiState.Error
+            }
+        }
+    }
+
+    suspend fun insertMonitoring() {
+        if (uiState is InsertMonitoringUiState.Success) {
+            val currentState = uiState as InsertMonitoringUiState.Success
+            viewModelScope.launch {
+                try {
+                    repository.insertMonitoring(currentState.insertMonitoringUiEvent.toData())
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
     }
 }
 
-data class InsertMonitoringUiState(
-    val insertMonitoringUiEvent: InsertMonitoringUiEvent = InsertMonitoringUiEvent()
-)
+sealed class InsertMonitoringUiState {
+    object Loading : InsertMonitoringUiState()
+    data class Success(
+        val petugasList: List<Petugas>,
+        val kandangHewanList: List<KandangWithHewan>,
+        val insertMonitoringUiEvent: InsertMonitoringUiEvent = InsertMonitoringUiEvent()
+    ) : InsertMonitoringUiState()
+    object Error : InsertMonitoringUiState()
+}
 
 data class InsertMonitoringUiEvent(
     val idMonitoring: String = "",

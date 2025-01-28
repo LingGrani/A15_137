@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -105,15 +106,7 @@ private fun Update(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        OutlinedTextField(
-            value = uiEvent.idPetugas,
-            onValueChange = { onValueChange(uiEvent.copy(idPetugas = it)) },
-            label = { Text("ID") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            readOnly = true,
-            enabled = false
-        )
+        Text("ID Petugas: ${uiEvent.idPetugas}", fontWeight = FontWeight.Bold)
         OutlinedTextField(
             value = uiEvent.namaPetugas,
             onValueChange = { onValueChange(uiEvent.copy(namaPetugas = it)) },

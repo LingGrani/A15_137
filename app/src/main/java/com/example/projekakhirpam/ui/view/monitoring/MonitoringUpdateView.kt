@@ -21,15 +21,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projekakhirpam.model.Petugas
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
+import com.example.projekakhirpam.ui.component.OnError
+import com.example.projekakhirpam.ui.component.OnLoading
 import com.example.projekakhirpam.ui.component.SelectedTextField
 import com.example.projekakhirpam.ui.component.TimeDatePickerSQL
-import com.example.projekakhirpam.ui.view.hewan.OnLoading
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
 import com.example.projekakhirpam.ui.viewmodel.kandang.HomeKandangUiState
 import com.example.projekakhirpam.ui.viewmodel.kandang.HomeKandangVM
@@ -45,20 +48,17 @@ import java.time.LocalDateTime
 
 @Composable
 fun MonitoringUpdateView(
-    data1: HomeKandangVM = viewModel(factory = PenyediaViewModel.Factory),
-    data2: HomePetugasVM = viewModel(factory = PenyediaViewModel.Factory),
     onBack: () -> Unit,
     viewModel: UpdateMonitoringVM = viewModel(factory = PenyediaViewModel.Factory),
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit
 ){
     val coroutineScope = rememberCoroutineScope()
-    val kandangUiState = data1.kandangUiState
-    val petugasUiState = data2.petugasUiState
+
     Scaffold (
         topBar = {
             CustomTopAppBar(
-                judul = "Tambah Monitoring",
+                judul = "Update Monitoring",
                 showBackButton = true,
                 isDarkTheme = isDarkTheme,
                 onThemeChange = onThemeChange,
@@ -67,7 +67,7 @@ fun MonitoringUpdateView(
         }
     ){ padding ->
         UpdateBody(
-            insertUiState = viewModel.uiState,
+            uiState = viewModel.uiState,
             onValueChange = viewModel::updateDataState,
             onSaveClick = {
                 coroutineScope.launch {
@@ -78,8 +78,7 @@ fun MonitoringUpdateView(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxWidth(),
-            data1 = kandangUiState,
-            data2 = petugasUiState
+            retryAction = viewModel::getDataById
         )
 
     }
@@ -87,51 +86,40 @@ fun MonitoringUpdateView(
 
 @Composable
 private fun UpdateBody(
-    insertUiState: UpdateMonitoringUiState,
+    uiState: UpdateMonitoringUiState,
     onValueChange: (UpdateMonitoringUiEvent) -> Unit,
     onSaveClick: () -> Unit,
     modifier: Modifier,
-    data1: HomeKandangUiState,
-    data2: HomePetugasUiState
+    retryAction: () -> Unit,
 ){
     var nilaiValid by remember { mutableStateOf(false) }
-    when(data1){
-        is HomeKandangUiState.Loading -> OnLoading(modifier = modifier.fillMaxSize())
-        is HomeKandangUiState.Success -> {
-            when(data2){
-                is HomePetugasUiState.Loading -> OnLoading(modifier = modifier.fillMaxSize())
-                is HomePetugasUiState.Success -> {
-                    Column (
-                        verticalArrangement = Arrangement.spacedBy(18.dp),
-                        modifier = modifier.padding(12.dp)
-                    ){
-                        val list1: List<KandangWithHewan> = when (data1) {
-                            else -> data1.kandangWithHewanList
-                        }
-                        val list2: List<Petugas> = when (data2) {
-                            else -> data2.list
-                        }
-                        Update(
-                            insertUiEvent = insertUiState.updateMonitoringUiEvent,
-                            onValueChange = onValueChange,
-                            data1 = list1,
-                            data2 = list2,
-                            valid = { data -> nilaiValid = data }
-                        )
-                        Button (
-                            onClick = onSaveClick,
-                            shape = MaterialTheme.shapes.small,
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = nilaiValid
-                        ) {
-                            Text("Simpan")
-                        }
-                    }
+    when(uiState){
+        is UpdateMonitoringUiState.Loading -> OnLoading(modifier = modifier.fillMaxSize())
+        is UpdateMonitoringUiState.Error -> OnError(retryAction, Modifier.fillMaxSize())
+        is UpdateMonitoringUiState.Success -> {
+            Column (
+                verticalArrangement = Arrangement.spacedBy(18.dp),
+                modifier = modifier.padding(12.dp)
+            ){
+                val kandangHewan = uiState.kandangHewanList
+                val petugas = uiState.petugasList
+                Update(
+                    insertUiEvent = uiState.updateMonitoringUiEvent,
+                    onValueChange = onValueChange,
+                    data1 = kandangHewan,
+                    data2 = petugas,
+                    valid = { data -> nilaiValid = data }
+                )
+                Button (
+                    onClick = onSaveClick,
+                    shape = MaterialTheme.shapes.small,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = nilaiValid
+                ) {
+                    Text("Simpan")
                 }
-                is HomePetugasUiState.Error -> TODO()
             }
         }
-        is HomeKandangUiState.Error -> TODO()
     }
 }
 @Composable
@@ -149,67 +137,53 @@ private fun Update(
     var sakit by remember { mutableIntStateOf(0) }
     var sehat by remember { mutableIntStateOf(0) }
     onValueChange(insertUiEvent.copy(tanggalMonitoring = LocalDateTime.now().toString()))
-
+    selectedHewanKandang = data1.find { it.kandang.idKandang.toString() == insertUiEvent.idKandang }?.hewan?.namaHewan ?: ""
+    selectedNamaPetugas = data2.find { it.idPetugas.toString() == insertUiEvent.idPetugas }?.namaPetugas ?: ""
+    selectedPopulasi = data1.find { it.hewan?.namaHewan == selectedHewanKandang }?.hewan?.populasi!!
     Column(
         modifier = Modifier,
     ) {
-        OutlinedTextField(
-            value = insertUiEvent.idMonitoring,
-            onValueChange = { nilai ->
-                if (nilai.all { it.isDigit() }) {
-                    onValueChange(insertUiEvent.copy(idMonitoring = nilai))
+        Text("ID Monitoring: ${insertUiEvent.idMonitoring}", fontWeight = FontWeight.Bold)
+        SelectedTextField(
+            selectedValue = selectedHewanKandang,
+            options = data1.map { it.hewan?.namaHewan ?: "" },
+            label = "Hewan",
+            onValueChangedEvent = { selectedName ->
+                val selectedId = data1.find { it.hewan?.namaHewan == selectedName }?.kandang?.idKandang
+                val populasi = data1.find { it.hewan?.namaHewan == selectedName }?.hewan?.populasi
+                if (selectedId != null) {
+                    onValueChange(insertUiEvent.copy(idKandang = selectedId.toString()))
+                    selectedHewanKandang = selectedName
+                }
+                if (populasi != null) {
+                    selectedPopulasi = populasi
                 }
             },
-            label = { Text("ID Monitoring") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            enabled = false,
-            readOnly = false
         )
-        Row {
-            SelectedTextField(
-                selectedValue = insertUiEvent.idKandang,
-                options = data1.map { it.hewan?.namaHewan ?: "" },
-                label = "Hewan",
-                onValueChangedEvent = { selectedName ->
-                    val selectedId = data1.find { it.hewan?.namaHewan == selectedName }?.kandang?.idKandang
-                    val populasi = data1.find { it.hewan?.namaHewan == selectedName }?.hewan?.populasi
-                    if (selectedId != null) {
-                        onValueChange(insertUiEvent.copy(idKandang = selectedId.toString()))
-                        selectedHewanKandang = selectedName
-                    }
-                    if (populasi != null) {
-                        selectedPopulasi = populasi
-                    }
-                },
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                selectedHewanKandang,
-                modifier = Modifier.weight(2f)
-            )
-        }
-
+        Text(
+            "Populasi: $selectedPopulasi",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
         // Pilih Petugas
-        Row {
-            SelectedTextField(
-                selectedValue = insertUiEvent.idPetugas,
-                options = data2.map { it.namaPetugas },
-                label = "Petugas",
-                onValueChangedEvent = { selectedName ->
-                    val selectedId = data2.find { it.namaPetugas == selectedName }?.idPetugas
-                    if (selectedId != null) {
-                        onValueChange(insertUiEvent.copy(idPetugas = selectedId.toString()))
-                    }
-                },
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                selectedNamaPetugas,
-                modifier = Modifier.weight(2f)
-            )
-        }
-        Text(selectedJabatanPetugas)
+        SelectedTextField(
+            selectedValue = selectedNamaPetugas,
+            options = data2.map { it.namaPetugas },
+            label = "Petugas",
+            onValueChangedEvent = { selectedName ->
+                val selectedId = data2.find { it.namaPetugas == selectedName }?.idPetugas
+                if (selectedId != null) {
+                    onValueChange(insertUiEvent.copy(idPetugas = selectedId.toString()))
+                    selectedNamaPetugas = selectedName
+                    selectedJabatanPetugas = data2.find { it.namaPetugas == selectedName }?.jabatan ?: ""
+                }
+            },
+        )
+        Text(
+            selectedJabatanPetugas,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
         // Pilih Waktu
         TimeDatePickerSQL(
             onValueChangedEvent = {
@@ -246,8 +220,12 @@ private fun Update(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
         }
-        Row {
-            Text("Status: ${insertUiEvent.status}")
+        Row (
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Text("Status: ${insertUiEvent.status}", modifier = Modifier.weight(3f), fontWeight = FontWeight.Bold)
             Button(
                 onClick = {
                     updateStatus(
@@ -259,12 +237,12 @@ private fun Update(
                             valid(value != "Data Tidak Valid")
                         }
                     )
-                }
+                },
+                shape = MaterialTheme.shapes.small,
+                modifier = Modifier.weight(1f)
             ) {
                 Text("Update")
             }
         }
-        Text(insertUiEvent.tanggalMonitoring)
-        Text(selectedPopulasi.toString())
     }
 }

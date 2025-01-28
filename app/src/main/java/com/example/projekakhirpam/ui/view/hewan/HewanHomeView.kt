@@ -1,10 +1,11 @@
 package com.example.projekakhirpam.ui.view.hewan
 
-import android.util.Log
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,23 +15,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,24 +38,24 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projekakhirpam.R
 import com.example.projekakhirpam.model.Hewan
+import com.example.projekakhirpam.ui.component.BottomNavigationBar
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
+import com.example.projekakhirpam.ui.component.OnError
+import com.example.projekakhirpam.ui.component.OnLoading
 import com.example.projekakhirpam.ui.component.footer
 import com.example.projekakhirpam.ui.theme.herbivora
 import com.example.projekakhirpam.ui.theme.karnivora
@@ -66,16 +63,6 @@ import com.example.projekakhirpam.ui.theme.omnivora
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
 import com.example.projekakhirpam.ui.viewmodel.hewan.HomeHewanUiState
 import com.example.projekakhirpam.ui.viewmodel.hewan.HomeHewanVM
-import kotlinx.coroutines.delay
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.CardDefaults
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,7 +73,11 @@ fun HewanHomeView(
     onAddClick: () -> Unit,
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    navigateHewan: () -> Unit,
+    navigateKandang: () -> Unit,
+    navigateMonitoring: () -> Unit,
+    navigatePetugas: () -> Unit,
 ) {
     val searchText by viewModel.searchText.collectAsState()
     val datas by viewModel.datas.collectAsState()
@@ -99,6 +90,15 @@ fun HewanHomeView(
                 isDarkTheme = isDarkTheme,
                 onThemeChange = onThemeChange,
                 onBack = onBack
+            )
+        },
+        bottomBar = {
+            BottomNavigationBar(
+                selectedTab = 0,
+                navigateHewan = navigateHewan,
+                navigateKandang = navigateKandang,
+                navigateMonitoring = navigateMonitoring,
+                navigatePetugas = navigatePetugas
             )
         },
         floatingActionButton = {
@@ -115,13 +115,6 @@ fun HewanHomeView(
                     tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
-        },
-        bottomBar = {
-            Spacer(modifier = Modifier.height(64.dp))
-            Icon(
-                imageVector = Icons.Default.Refresh,
-                contentDescription = null,
-            )
         }
     ){ innerPadding ->
         Column (
@@ -337,51 +330,6 @@ fun editDelete(
                 modifier = Modifier.size(48.dp),
                 tint = MaterialTheme.colorScheme.onPrimary
             )
-        }
-    }
-}
-
-@Composable
-fun OnLoading(
-    modifier: Modifier = Modifier,
-    icon: Painter = painterResource(R.drawable.loading),
-    contentDescription: String? = "Loading"
-) {
-    val infiniteTransition = rememberInfiniteTransition(label = "")
-    val rotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ), label = ""
-    )
-
-    // Ikon dengan rotasi
-    Icon(
-        painter = icon,
-        contentDescription = contentDescription,
-        modifier = modifier
-            .size(216.dp)
-            .graphicsLayer {
-                rotationZ = rotation
-            },
-        tint = MaterialTheme.colorScheme.primary
-    )
-}
-
-@Composable
-fun OnError(retryAction:() -> Unit, modifier: Modifier = Modifier) {
-    Column (
-        modifier = modifier,
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_launcher_foreground), contentDescription = ""
-        )
-        Button(onClick = retryAction) {
-            Text("Coba lagi")
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.projekakhirpam.ui.view.kandang
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,9 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -23,19 +22,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.projekakhirpam.model.Hewan
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
+import com.example.projekakhirpam.ui.component.OnError
+import com.example.projekakhirpam.ui.component.OnLoading
 import com.example.projekakhirpam.ui.component.SelectedTextField
-import com.example.projekakhirpam.ui.view.hewan.OnError
-import com.example.projekakhirpam.ui.view.hewan.OnLoading
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
-import com.example.projekakhirpam.ui.viewmodel.hewan.HomeHewanUiState
-import com.example.projekakhirpam.ui.viewmodel.hewan.HomeHewanVM
 import com.example.projekakhirpam.ui.viewmodel.kandang.InsertKandangUiEvent
 import com.example.projekakhirpam.ui.viewmodel.kandang.InsertKandangUiState
 import com.example.projekakhirpam.ui.viewmodel.kandang.InsertKandangVM
@@ -43,15 +38,13 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun KandangInsertView(
-    data: HomeHewanVM = viewModel(factory = PenyediaViewModel.Factory),
     onBack: () -> Unit,
-    modifier: Modifier = Modifier,
     viewModel: InsertKandangVM = viewModel(factory = PenyediaViewModel.Factory),
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit
 ){
     val coroutineScope = rememberCoroutineScope()
-    val hewanUiState = data.hewanUiState
+
     Scaffold (
         topBar = {
             CustomTopAppBar(
@@ -75,7 +68,7 @@ fun KandangInsertView(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxWidth(),
-            data = hewanUiState
+            retryAction = viewModel::getData
         )
 
     }
@@ -87,26 +80,25 @@ private fun EntryBody(
     onValueChange: (InsertKandangUiEvent) -> Unit,
     onSaveClick: () -> Unit,
     modifier: Modifier,
-    data: HomeHewanUiState
+    retryAction: () -> Unit,
 ){
     Column (
         verticalArrangement = Arrangement.spacedBy(18.dp),
         modifier = modifier.padding(12.dp)
     ){
-        when(data){
-            is HomeHewanUiState.Loading -> OnLoading(modifier = modifier.fillMaxSize())
-            is HomeHewanUiState.Success ->
-                if (data.hewanList.isEmpty()) {
+        when(insertUiState){
+            InsertKandangUiState.Loading -> OnLoading(modifier = modifier.fillMaxSize())
+            is InsertKandangUiState.Success ->
+                if (insertUiState.hewanList.isEmpty()){
                     return Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(text = "Tidak ada data")
+                        Text(text = "Tidak ada data hewan")
                         OnLoading()
                     }
                 } else {
-                    val list: List<Pair<Int?, String?>> = data.hewanList.map { it.idHewan to it.namaHewan }
                     Insert(
                         insertUiEvent = insertUiState.insertKandangUiEvent,
                         onValueChange = onValueChange,
-                        data = list
+                        data = insertUiState.hewanList
                     )
                     Button (
                         onClick = onSaveClick,
@@ -116,7 +108,7 @@ private fun EntryBody(
                         Text("Simpan")
                     }
                 }
-            is HomeHewanUiState.Error -> TODO()
+            InsertKandangUiState.Error -> OnError(retryAction, modifier = modifier.fillMaxWidth())
         }
     }
 }
@@ -125,7 +117,7 @@ private fun EntryBody(
 private fun Insert(
     insertUiEvent: InsertKandangUiEvent,
     onValueChange: (InsertKandangUiEvent) -> Unit,
-    data: List<Pair<Int?, String?>>
+    data: List<Hewan>
 ) {
     var namaHewan by remember { mutableStateOf("") }
     Column (
@@ -138,23 +130,16 @@ private fun Insert(
             verticalAlignment = Alignment.CenterVertically
         ){
             SelectedTextField(
-                selectedValue = insertUiEvent.idHewan,
-                options = data.map { it.second ?: "" },
+                selectedValue = namaHewan,
+                options = data.map { it.namaHewan },
                 label = "Hewan",
                 onValueChangedEvent = { selectedName ->
-                    val selectedId = data.find { it.second == selectedName }?.first
+                    val selectedId = data.find { it.namaHewan == selectedName }?.idHewan
                     if (selectedId != null) {
                         onValueChange(insertUiEvent.copy(idHewan = selectedId.toString()))
                         namaHewan = selectedName
                     }
-                },
-                modifier = Modifier.fillMaxWidth().weight(4f)
-            )
-            Text(
-                namaHewan,
-                modifier = Modifier.weight(7f).padding(16.dp),
-                fontWeight = FontWeight.Bold,
-                fontSize = 24.sp
+                }
             )
         }
         OutlinedTextField(

@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.projekakhirpam.model.Hewan
 import com.example.projekakhirpam.model.Kandang
 import com.example.projekakhirpam.repo.KebunRepository
 import com.example.projekakhirpam.ui.navigation.DestinasiKandangDetail
@@ -17,24 +18,31 @@ class UpdateKandangVM(
     private val repo: KebunRepository
 ) : ViewModel() {
 
-    var uiState by mutableStateOf(UpdateKandangUiState())
+    var uiState: UpdateKandangUiState by mutableStateOf(UpdateKandangUiState.Loading)
         private set
 
     fun updateDataState(updateUiEvent: UpdateKandangUiEvent) {
-        uiState = UpdateKandangUiState(updateKandangUiEvent = updateUiEvent)
+        if (uiState is UpdateKandangUiState.Success) {
+            val currentState = uiState as UpdateKandangUiState.Success
+            uiState = currentState.copy(updateKandangUiEvent = updateUiEvent)
+        }
     }
 
     private val _id: String = checkNotNull(savedStateHandle[DestinasiKandangDetail.idArg])
 
     init {
-        getDataById(_id)
+        getDataById()
     }
 
-    fun getDataById(id: String) {
+    fun getDataById() {
         viewModelScope.launch {
+            uiState = UpdateKandangUiState.Loading
             try {
-                val kandang = repo.getKandangById(id.toInt())
-                uiState = UpdateKandangUiState(updateKandangUiEvent = kandang.toUpdateUiEvent())
+                val kandang = repo.getKandangById(_id.toInt())
+                uiState = UpdateKandangUiState.Success(
+                    hewanList = repo.getHewan(),
+                    updateKandangUiEvent = kandang.toUpdateUiEvent()
+                )
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -42,11 +50,11 @@ class UpdateKandangVM(
     }
 
     suspend fun updateData() {
+        val updateEvent = (uiState as UpdateKandangUiState.Success).updateKandangUiEvent
         viewModelScope.launch {
             try {
-                Log.d("Hasil", uiState.updateKandangUiEvent.toString())
-                repo.updateKandang(_id.toInt(), uiState.updateKandangUiEvent.todata())
-                Log.d("Hasil", "updateMhs: Success")
+                Log.d("Hasil", updateEvent.toString())
+                repo.updateKandang(_id.toInt(), updateEvent.todata())
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -54,9 +62,15 @@ class UpdateKandangVM(
     }
 }
 
-data class UpdateKandangUiState(
-    val updateKandangUiEvent: UpdateKandangUiEvent = UpdateKandangUiEvent()
-)
+sealed class UpdateKandangUiState {
+    object Loading : UpdateKandangUiState()
+    data class Success(
+        val hewanList: List<Hewan>,
+        val updateKandangUiEvent: UpdateKandangUiEvent = UpdateKandangUiEvent()
+    ) : UpdateKandangUiState()
+    object Error : UpdateKandangUiState()
+}
+
 
 data class UpdateKandangUiEvent(
     val idKandang: String = "",

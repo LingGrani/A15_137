@@ -2,7 +2,6 @@ package com.example.projekakhirpam.ui.view.kandang
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -26,19 +24,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projekakhirpam.R
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
 import com.example.projekakhirpam.ui.component.DeleteConfirmationDialog
+import com.example.projekakhirpam.ui.component.OnError
+import com.example.projekakhirpam.ui.component.OnLoading
 import com.example.projekakhirpam.ui.view.hewan.editDelete
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
-import com.example.projekakhirpam.ui.viewmodel.hewan.DetailHewanUiState
 import com.example.projekakhirpam.ui.viewmodel.kandang.DetailKandangUiState
 import com.example.projekakhirpam.ui.viewmodel.kandang.DetailKandangVM
 import com.example.projekakhirpam.ui.viewmodel.kandang.KandangWithHewan
@@ -68,7 +65,6 @@ fun KandangDetailView (
             modifier = Modifier.padding(innerPadding),
             detailUiState = viewModel.detailUiState,
             retryAction = { viewModel.getDataBYID() },
-            onBack = onBack,
             onEditClick = onEditClick,
             onDeleteClick = {
                 viewModel.delete(viewModel.detailUiState.let {
@@ -86,14 +82,13 @@ private fun DetailStatus (
     detailUiState: DetailKandangUiState,
     retryAction: () -> Unit,
     modifier: Modifier = Modifier,
-    onBack: () -> Unit = {},
     onEditClick: (String) -> Unit = {},
     onDeleteClick: () -> Unit,
     onHewanClick: (String) -> Unit = {}
 ){
     var deleteConfirmationRequired by rememberSaveable { mutableStateOf(false) }
     when (detailUiState) {
-        is DetailKandangUiState.Loading -> com.example.projekakhirpam.ui.view.hewan.OnLoading(modifier = modifier.fillMaxSize())
+        is DetailKandangUiState.Loading -> OnLoading(modifier = modifier.fillMaxSize())
         is DetailKandangUiState.Success ->
             if (detailUiState.kandangWithHewan.kandang.idKandang == 0) {
                 return Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -123,7 +118,7 @@ private fun DetailStatus (
                     }
                 }
             }
-        is DetailKandangUiState.Error -> com.example.projekakhirpam.ui.view.hewan.OnError(
+        is DetailKandangUiState.Error -> OnError(
             retryAction,
             modifier = modifier.fillMaxWidth()
         )
@@ -187,7 +182,8 @@ private fun DetailBody(
                     modifier = Modifier
                         .size(48.dp)
                         .weight(1f),
-                    tint = MaterialTheme.colorScheme.inverseSurface                )
+                    tint = MaterialTheme.colorScheme.inverseSurface
+                )
             }
         }
     }

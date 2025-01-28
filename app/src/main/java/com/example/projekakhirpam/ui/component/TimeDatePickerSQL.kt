@@ -6,6 +6,7 @@ import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -30,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import com.example.projekakhirpam.R
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -107,7 +109,8 @@ fun DatePickerFieldToModal(
             Icon(
                 painter = painterResource(R.drawable.date),
                 contentDescription = "Select date",
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
             )
         },
         modifier = modifier
@@ -191,7 +194,8 @@ fun TimePickerFieldToModal(
             Icon(
                 painter = painterResource(R.drawable.time),
                 contentDescription = "Select date",
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
             )
         },
         modifier = modifier

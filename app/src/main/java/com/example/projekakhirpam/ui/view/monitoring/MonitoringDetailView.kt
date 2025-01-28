@@ -32,8 +32,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projekakhirpam.R
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
 import com.example.projekakhirpam.ui.component.DeleteConfirmationDialog
-import com.example.projekakhirpam.ui.view.hewan.OnError
-import com.example.projekakhirpam.ui.view.hewan.OnLoading
+import com.example.projekakhirpam.ui.component.OnError
+import com.example.projekakhirpam.ui.component.OnLoading
 import com.example.projekakhirpam.ui.view.hewan.editDelete
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
 import com.example.projekakhirpam.ui.viewmodel.monitoring.DetailMonitoringUiState

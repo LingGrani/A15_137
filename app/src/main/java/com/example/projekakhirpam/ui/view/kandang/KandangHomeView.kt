@@ -1,7 +1,5 @@
 package com.example.projekakhirpam.ui.view.kandang
 
-import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -9,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,7 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,35 +35,35 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projekakhirpam.R
-import com.example.projekakhirpam.model.Kandang
+import com.example.projekakhirpam.ui.component.BottomNavigationBar
 import com.example.projekakhirpam.ui.component.CustomTopAppBar
+import com.example.projekakhirpam.ui.component.OnError
+import com.example.projekakhirpam.ui.component.OnLoading
 import com.example.projekakhirpam.ui.component.footer
 import com.example.projekakhirpam.ui.theme.herbivora
 import com.example.projekakhirpam.ui.theme.karnivora
 import com.example.projekakhirpam.ui.theme.omnivora
-import com.example.projekakhirpam.ui.view.hewan.OnError
-import com.example.projekakhirpam.ui.view.hewan.OnLoading
 import com.example.projekakhirpam.ui.viewmodel.PenyediaViewModel
-import com.example.projekakhirpam.ui.viewmodel.hewan.HomeHewanVM
 import com.example.projekakhirpam.ui.viewmodel.kandang.HomeKandangUiState
 import com.example.projekakhirpam.ui.viewmodel.kandang.HomeKandangVM
 import com.example.projekakhirpam.ui.viewmodel.kandang.KandangWithHewan
 
 @Composable
 fun KandangHomeView(
-    modifier: Modifier = Modifier,
     viewModel: HomeKandangVM = viewModel(factory = PenyediaViewModel.Factory),
-    viewModel2: HomeHewanVM = viewModel(factory = PenyediaViewModel.Factory),
     onDetailClick: (String) -> Unit = {},
     onAddClick: () -> Unit,
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    navigateHewan: () -> Unit,
+    navigateKandang: () -> Unit,
+    navigateMonitoring: () -> Unit,
+    navigatePetugas: () -> Unit,
 ) {
     val searchText by viewModel.searchText.collectAsState()
     val datas by viewModel.datas.collectAsState()
@@ -81,6 +77,15 @@ fun KandangHomeView(
                 isDarkTheme = isDarkTheme,
                 onThemeChange = onThemeChange,
                 onBack = onBack
+            )
+        },
+        bottomBar = {
+            BottomNavigationBar(
+                selectedTab = 1,
+                navigateHewan = navigateHewan,
+                navigateKandang = navigateKandang,
+                navigateMonitoring = navigateMonitoring,
+                navigatePetugas = navigatePetugas
             )
         },
         floatingActionButton = {
